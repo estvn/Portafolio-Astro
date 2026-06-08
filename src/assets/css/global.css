@@ -3,7 +3,6 @@
 .markdown-content {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.6;
-  color: #FFFFFF
 }
 
 .markdown-content h1 {
@@ -11,11 +10,6 @@
     font-weight: 500;
     margin-top: 2rem;
     margin-bottom: 0.5rem;
-    color: #FFFFFF;
-    background: white;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .markdown-content h2 {

@@ -1,13 +1,14 @@
 ---
 import { experienceInformation } from "../content/experienceInformation"
+const { bg_style } = Astro.props;
 ---
 
-<section id="experiencia" class="section-spacing bg-gray-50 dark:bg-gray-900">
+<section id="experiencia" class={`section-spacing dark:bg-gray-${bg_style ?? "800"} rounded-2xl mb-10`}>
     <div class="container mx-auto px-6">
         <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">Experiencia y Educación</h2>
+            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">Experiencia</h2>
             <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Mi trayectoria profesional y formación académica
+                Mi trayectoria profesional
             </p>
         </div>
         
@@ -30,7 +31,7 @@ import { experienceInformation } from "../content/experienceInformation"
                             <div class="w-1/2 pl-8 text-primary-500 text-4xl">
                             {item.certification ? (
                                 <a href={item.certification} target="_blank" rel="noopener noreferrer" title="Ver certificado">
-                                <i class="fas fa-certificate hover:text-primary-700 transition-colors duration-300"></i>
+                                <i class="fas fa-file-pdf hover:text-primary-700 transition-colors duration-300"></i>
                                 </a>
                             ) : (
                                 <i class="fas fa-code"></i>
@@ -42,7 +43,7 @@ import { experienceInformation } from "../content/experienceInformation"
                             <div class="w-1/2 pr-8 text-right text-primary-500 text-4xl">
                             {item.certification ? (
                                 <a href={item.certification} target="_blank" rel="noopener noreferrer" title="Ver certificado">
-                                <i class="fas fa-certificate hover:text-primary-700 transition-colors duration-300"></i>
+                                <i class="fas fa-file-pdf hover:text-primary-700 transition-colors duration-300"></i>
                                 </a>
                             ) : (
                                 <i class="fas fa-code"></i>

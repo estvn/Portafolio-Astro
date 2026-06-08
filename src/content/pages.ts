@@ -17,6 +17,11 @@ export const pages: IPage[] = [
         component: "Experience"
     },
     {
+        slug: "/education",
+        title: "Mi Educación",
+        component: "Education"
+    },
+    {
         slug: "/contact",
         title: "¡Contáctame!",
         component: "Contact"

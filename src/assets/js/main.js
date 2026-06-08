@@ -1,3 +1,5 @@
+        import { sendContactMessage } from '../../services/contact.service';
+
         // Variables globales
         let currentSection = 'inicio';
         let mouseX = 0;
@@ -16,7 +18,7 @@
         let isDeleting = false;
         
         // Inicialización cuando el DOM está listo
-        document.addEventListener('DOMContentLoaded', function() {
+        function init() {
             initializeTheme();
             initializeNavigation();
             initializeAnimations();
@@ -27,21 +29,20 @@
             initializeScrollEffects();
             initializeParticleInteraction();
             createParticles();
-        });
+        }
+
+        // Maneja tanto carga diferida como inline (Astro defer/module scripts)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
 
         // Gestión del tema claro/oscuro
         function initializeTheme() {
             const themeToggle = document.getElementById('theme-toggle');
-            const savedTheme = localStorage.getItem('theme');
-            
-            // Aplicar tema guardado o detectar preferencia del sistema
-            if (savedTheme) {
-                document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.classList.toggle('dark', prefersDark);
-            }
-            
+            if (!themeToggle) return;
+
             themeToggle.addEventListener('click', function() {
                 document.documentElement.classList.toggle('dark');
                 const isDark = document.documentElement.classList.contains('dark');
@@ -53,19 +54,20 @@
         function initializeNavigation() {
             const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
             const mobileMenu = document.getElementById('mobile-menu');
-            
-            mobileMenuToggle.addEventListener('click', function() {
-                mobileMenu.classList.toggle('hidden');
-            });
-            
-            // Cerrar menú móvil al hacer clic en un enlace
-            const mobileLinks = mobileMenu.querySelectorAll('a');
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    mobileMenu.classList.add('hidden');
+
+            if (mobileMenuToggle && mobileMenu) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
                 });
-            });
-            
+
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
+
             // Navegación suave con offset corregido
             const navLinks = document.querySelectorAll('a[href^="#"]');
             navLinks.forEach(link => {
@@ -137,6 +139,7 @@
         // Efecto de typing
         function initializeTypingEffect() {
             const typingElement = document.getElementById('typing-text');
+            if (!typingElement) return;
             
             function typeText() {
                 const currentText = typingTexts[currentTextIndex];
@@ -225,29 +228,58 @@
         // Formulario de contacto
         function initializeContactForm() {
             const form = document.getElementById('contact-form');
-            
-            form.addEventListener('submit', function(e) {
+            if (!form) return;
+
+            const submitBtn = document.getElementById('cf-submit');
+            const feedback = document.getElementById('cf-feedback');
+
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
-                // Simular envío del formulario
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-                
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
-                submitBtn.disabled = true;
-                
-                setTimeout(() => {
-                    submitBtn.innerHTML = '<i class="fas fa-check mr-2"></i>¡Mensaje Enviado!';
-                    submitBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-                    
-                    setTimeout(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                        submitBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+
+                const payload = {
+                    name: form.querySelector('[name="name"]').value,
+                    email: form.querySelector('[name="email"]').value,
+                    subject: form.querySelector('[name="subject"]').value,
+                    message: form.querySelector('[name="message"]').value,
+                };
+
+                setSubmitting(true);
+                hideFeedback();
+
+                try {
+                    const data = await sendContactMessage(payload);
+
+                    if (data.success) {
+                        showFeedback('success', '<i class="fas fa-check-circle mr-2"></i>¡Mensaje enviado! Te respondo a la brevedad.');
                         form.reset();
-                    }, 2000);
-                }, 2000);
+                    } else {
+                        showFeedback('error', '<i class="fas fa-exclamation-circle mr-2"></i>' + (data.message || 'Error al enviar. Intentá nuevamente.'));
+                    }
+                } catch {
+                    showFeedback('error', '<i class="fas fa-exclamation-circle mr-2"></i>Error de conexión. Intentá nuevamente.');
+                } finally {
+                    setSubmitting(false);
+                }
             });
+
+            function setSubmitting(loading) {
+                submitBtn.disabled = loading;
+                submitBtn.innerHTML = loading
+                    ? '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...'
+                    : '<i class="fas fa-paper-plane mr-2"></i>Enviar mensaje';
+            }
+
+            function showFeedback(type, html) {
+                feedback.innerHTML = html;
+                feedback.className = type === 'success'
+                    ? 'text-sm font-medium px-4 py-2.5 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    : 'text-sm font-medium px-4 py-2.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+            }
+
+            function hideFeedback() {
+                feedback.className = 'hidden';
+                feedback.innerHTML = '';
+            }
         }
 
         // Efectos de scroll
@@ -279,7 +311,8 @@
         // Interacción de partículas con el mouse
         function initializeParticleInteraction() {
             const heroSection = document.getElementById('inicio');
-            
+            if (!heroSection) return;
+
             heroSection.addEventListener('mousemove', function(e) {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
@@ -321,6 +354,7 @@
         // Crear partículas animadas
         function createParticles() {
             const particlesContainer = document.getElementById('particles-container');
+            if (!particlesContainer) return;
             const particleCount = 30;
             
             for (let i = 0; i < particleCount; i++) {
