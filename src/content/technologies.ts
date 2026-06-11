@@ -2,29 +2,17 @@ import type { ITypeTechnology } from "../interfaces/Interface";
 
 export const technologies: ITypeTechnology[] = [
     {
-        type: "Frontend",
-        listTechnologies: [
-            { name: "Astro",          icon: "/assets/icons/astro.svg" , percentage: 50},
-            { name: "React",          icon: "/assets/icons/react.svg", percentage: 45 },
-            { name: "Next.js",        icon: "/assets/icons/nextjs.svg", percentage: 55 },
-            { name: "TypeScript",     icon: "/assets/icons/typescript.svg", percentage: 80 },
-            { name: "JavaScript",     icon: "/assets/icons/javascript.svg", percentage: 80 },
-            { name: "Tailwind CSS",   icon: "/assets/icons/tailwindcss.svg", percentage: 75 },
-            { name: "Bootstrap",      icon: "/assets/icons/bootstrap.svg", percentage: 80 },
-            // { name: "jQuery",      icon: "/assets/icons/jquery.png", percentage: 35 }
-        ]
-    },
-    {
         type: "Backend",
         listTechnologies: [
-            { name: "Laravel",        icon: "/assets/icons/laravel.svg", percentage: 70 },
             { name: "NestJS",         icon: "/assets/icons/nestjs-svgrepo-com.svg", percentage: 70 },
-            { name: "Spring Boot",    icon: "/assets/icons/springboot.svg", percentage: 40 },
+            { name: "Node.js",        icon: "/assets/icons/nodejs.svg", percentage: 80 },
+            { name: "Laravel",        icon: "/assets/icons/laravel.svg", percentage: 70 },
+            //{ name: "Spring Boot",    icon: "/assets/icons/springboot.svg", percentage: 40 },
             { name: "FastAPI",        icon: "/assets/icons/fastapi.svg", percentage: 70 },
             { name: "PHP",            icon: "/assets/icons/php.svg", percentage: 85 },
             { name: "Java",           icon: "/assets/icons/java.svg", percentage: 84 },
             { name: "Python",         icon: "/assets/icons/python.svg", percentage: 70 },
-            { name: "Node.js",        icon: "/assets/icons/nodejs.svg", percentage: 50 },
+            { name: "GraphQL",        icon: "/assets/icons/graphql-icon.svg", percentage: 50 },
         ]
     },
     {
@@ -32,7 +20,7 @@ export const technologies: ITypeTechnology[] = [
         listTechnologies: [
             { name: "Oracle PL/SQL",                   icon: "/assets/icons/oracle.svg", percentage: 85 },
             { name: "SQL Server Transact-SQL",         icon: "/assets/icons/microsoftsqlserver.svg", percentage: 50 },
-            { name: "PostgreSQL",                      icon: "/assets/icons/postgresql-logo-svgrepo-com.svg", percentage: 75 },
+            { name: "PostgreSQL",                      icon: "/assets/icons/postgresql-logo-svgrepo-com.svg", percentage: 50 },
             { name: "Redis",                           icon: "/assets/icons/redis.svg", percentage: 50 },
             { name: "MySQL",                           icon: "/assets/icons/mysql.svg", percentage: 75 },
             // { name: "DB2",                          icon: "/assets/icons/db2.svg", percentage: 30 },
@@ -49,13 +37,28 @@ export const technologies: ITypeTechnology[] = [
     {
         type: "Infraestructura",
         listTechnologies: [
-            { name: "Microservicios", icon: "/assets/icons/microservicio.png", percentage: 50 },
-            { name: "Serverless",     icon: "/assets/icons/serverless.svg", percentage: 50 },
+            //{ name: "Microservicios", icon: "/assets/icons/microservicio.png", percentage: 50 },
+            //{ name: "Serverless",     icon: "/assets/icons/serverless.svg", percentage: 50 },
+            { name: "Docker",         icon: "/assets/icons/docker.svg", percentage: 55 },
             { name: "Terraform",      icon: "/assets/icons/terraform.svg", percentage: 50 },
             { name: "Azure Cloud",    icon: "/assets/icons/azure.svg", percentage: 35 },
-            { name: "Docker",         icon: "/assets/icons/docker.svg", percentage: 55 }
         ]
     },
+    {
+        type: "Frontend",
+        listTechnologies: [
+            { name: "Next.js",        icon: "/assets/icons/nextjs.svg", percentage: 55 },
+            { name: "React",          icon: "/assets/icons/react.svg", percentage: 45 },
+            { name: "Astro",          icon: "/assets/icons/astro.svg" , percentage: 50},
+            { name: "TypeScript",     icon: "/assets/icons/typescript.svg", percentage: 80 },
+            { name: "JavaScript",     icon: "/assets/icons/javascript.svg", percentage: 80 },
+            //{ name: "Tailwind CSS",   icon: "/assets/icons/tailwindcss.svg", percentage: 75 },
+            //{ name: "Bootstrap",      icon: "/assets/icons/bootstrap.svg", percentage: 80 },
+            // { name: "jQuery",      icon: "/assets/icons/jquery.png", percentage: 35 }
+        ]
+    },
+
+    /*
     {
         type: "QA & Documentación",
         listTechnologies: [
@@ -76,4 +79,5 @@ export const technologies: ITypeTechnology[] = [
             { name: "Wireshark",      icon: "/assets/icons/wireshark.svg", percentage: 30 },
         ]
     }
+    */
 ];
