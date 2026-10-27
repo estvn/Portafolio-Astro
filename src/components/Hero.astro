@@ -1,6 +1,7 @@
 ---
 import Bi from './Bi.astro';
 import { contactInformation } from '../content/contactInformation';
+import { cvUrl } from '../content/educationInformation';
 import { experienceInformation } from '../content/experienceInformation';
 import { technologies } from '../content/technologies';
 
@@ -46,7 +47,7 @@ const socials = [
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-                <a href="/assets/archives/CV_Estiven_Mejia_Fullstack.pdf" download="CV_Estiven_Mejia_Fullstack.pdf"
+                <a href={cvUrl.es} data-cv-es={cvUrl.es} data-cv-en={cvUrl.en} download="CV_Estiven_Mejia_Fullstack.pdf"
                     onclick="window.open(this.href, '_blank')"
                     class="btn-solid px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
                     <Bi es="Descargar CV" en="Download CV" />

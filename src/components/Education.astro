@@ -9,7 +9,7 @@ const cvButton = "btn-solid inline-flex items-center gap-2 min-h-11 px-5 rounded
     <div class="container mx-auto px-2 sm:px-6">
         <!-- CV action: sticky on md+ so it stays visible while scrolling through the section -->
         <div class="hidden md:flex sticky top-[calc(var(--nav-h)+0.75rem)] z-20 h-0 justify-end pointer-events-none">
-            <a href={cvUrl} target="_blank" rel="noopener noreferrer" class={`${cvButton} pointer-events-auto h-fit`}>
+            <a href={cvUrl.es} data-cv-es={cvUrl.es} data-cv-en={cvUrl.en} target="_blank" rel="noopener noreferrer" class={`${cvButton} pointer-events-auto h-fit`}>
                 <i class="fas fa-file-pdf" aria-hidden="true"></i><Bi es="Ver CV" en="View CV" />
             </a>
         </div>
@@ -19,7 +19,7 @@ const cvButton = "btn-solid inline-flex items-center gap-2 min-h-11 px-5 rounded
             <p class="text-xl text-fg max-w-2xl mx-auto">
                 <Bi es="Mi formación académica y certificaciones profesionales" en="My academic background and professional certifications" />
             </p>
-            <a href={cvUrl} target="_blank" rel="noopener noreferrer" class={`${cvButton} md:hidden mt-6`}>
+            <a href={cvUrl.es} data-cv-es={cvUrl.es} data-cv-en={cvUrl.en} target="_blank" rel="noopener noreferrer" class={`${cvButton} md:hidden mt-6`}>
                 <i class="fas fa-file-pdf" aria-hidden="true"></i><Bi es="Ver CV" en="View CV" />
             </a>
         </div>

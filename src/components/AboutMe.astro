@@ -1,6 +1,7 @@
 ---
 import Bi from "./Bi.astro";
 import NeuralComputer from "./NeuralComputer.astro";
+import { cvUrl } from "../content/educationInformation";
 
 const p1 = {
     es: `Ingeniero en sistemas dedicado al <strong class="text-gradient">análisis, diseño, desarrollo y despliegue de sistemas informáticos expertos.</strong> Con experiencia en el campo de las bases de datos relacionales, desarrollo en Back-end y Front-end con el uso de distintos lenguajes, diagramación, arquitecturas y diferentes metodologías de desarrollo para lograr <strong class="text-gradient">software de calidad acorde a las necesidades de los clientes.</strong>`,
@@ -33,7 +34,9 @@ const p2 = {
 
                 <p class="leading-relaxed mb-4">
                     <a
-                        href="/assets/archives/CV_Estiven_Mejia_Fullstack.pdf"
+                        href={cvUrl.es}
+                        data-cv-es={cvUrl.es}
+                        data-cv-en={cvUrl.en}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="text-accent underline underline-offset-4 hover:opacity-80 transition-opacity duration-300"

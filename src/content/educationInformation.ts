@@ -1,8 +1,12 @@
 import type { ICertification, IDegree } from "../interfaces/Interface";
 
-export const cvUrl = "/assets/archives/CV_Estiven_Mejia_Fullstack.pdf";
+// One CV per language; links carry both via data-cv-es/data-cv-en and theme-lang.js picks by <html lang>
+export const cvUrl = {
+    es: "/assets/archives/CV_Estiven_Mejia_Fullstack.pdf",
+    en: "/assets/archives/CV_Estiven_Mejia_Fullstack_EN.pdf",
+};
 
-// Source of truth: the CV PDF (public/assets/archives/CV_Estiven_Mejia_Fullstack.pdf)
+// Source of truth: the CV PDF (public/assets/archives/CV_Estiven_Mejia_Fullstack.pdf, EN is a translation of it)
 export const degree: IDegree = {
     title: "Ingeniería en Sistemas",
     title_en: "Systems Engineering",

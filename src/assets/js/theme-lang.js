@@ -26,6 +26,11 @@ function syncLangAttributes(lang) {
   document.querySelectorAll('[data-ph-es]').forEach((el) => {
     el.placeholder = el.dataset[lang === 'en' ? 'phEn' : 'phEs'] || el.placeholder;
   });
+  // CV links: Spanish CV by default, English one when the page is in English
+  document.querySelectorAll('a[data-cv-es]').forEach((a) => {
+    a.href = a.dataset[lang === 'en' ? 'cvEn' : 'cvEs'];
+    if (a.hasAttribute('download')) a.download = a.href.split('/').pop();
+  });
 }
 
 export function setLang(lang) {
