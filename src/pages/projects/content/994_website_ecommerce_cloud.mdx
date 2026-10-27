@@ -1,6 +1,8 @@
 ---
 title: 'Infraestructura - E-commerce'
-description: 'Desarrollo de Infraestructura en la nube de Azure para un E-commerce.'
+description: 'Diseño e infraestructura como código (Terraform) en Azure para un e-commerce: FrontOffice y BackOffice, API compartida, tareas asíncronas con Queue y Functions, caché Redis y Datawarehouse.'
+title_en: 'Infrastructure - E-commerce'
+description_en: 'Design and infrastructure as code (Terraform) on Azure for an e-commerce: FrontOffice and BackOffice, shared API, async tasks with Queue and Functions, Redis cache and a data warehouse.'
 image: 
   url: '/assets/projects/infra-ecommerce.webp'
   alt: Infraestructura Ecommerce
@@ -17,6 +19,26 @@ links:
       url: "https://github.com/Estvn/ecommerce-infra-analytics"
   live: ''
 ---
+
+<div data-lang="es">
+
+## Resumen
+
+Diseño de la arquitectura en la nube de un e-commerce sobre Azure y su aprovisionamiento como infraestructura como código con Terraform, organizado en tres repositorios por responsabilidad: aplicaciones, almacenamiento y analítica.
+
+## Logros clave
+
+- <strong>Arquitectura completa justificada</strong> componente por componente: dos UI (FrontOffice y BackOffice), una API compartida, base de datos OLTP, Blob Storage, caché y Datawarehouse.
+- <strong>Procesamiento asíncrono</strong> con Queue Storage y Azure Functions para tareas que no requieren respuesta inmediata, como la confirmación de pedidos.
+- <strong>Azure Cache for Redis</strong> para carrito, sesión y datos frecuentes, buscando una experiencia fluida.
+- <strong>Datawarehouse y ETL</strong> con Azure Data Factory para el análisis estratégico del negocio.
+- <strong>Infraestructura en Terraform</strong> separada en tres repositorios con responsabilidad única, referenciando recursos compartidos entre ellos.
+
+## Stack
+
+Azure (App Service, Queue Storage, Functions, SQL Database, Blob Storage, Cache for Redis, Data Factory), Terraform.
+
+------------------------------------------
 
 # Descripción del Sistema E-commerce
 ------------
@@ -194,4 +216,205 @@ Para Datawarehouse y orquestación ETL.
 
 - El análisis de los servicios requeridos es un proceso complejo, ya que existen muchas opciones y muchas tecnologías (algunas podrían ser las indicadas, pero la inexperiencia en ella la puede descartar como posible opción) para satisfacer las necesidades de los negocios.
 - Como opinión personal, la clave para saber que servicios se pueden usar es identificar el costo de los servicios que esté dentro de las posibilidades de los clientes, y también conocer como funciona una tecnología e identificar si es la correcta para cubrir una necesidad en la aplicación que se va a implementar.
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+Design of an e-commerce cloud architecture on Azure and its provisioning as infrastructure as code with Terraform, organized into three repositories by responsibility: applications, storage and analytics.
+
+## Key achievements
+
+- <strong>Complete architecture justified</strong> component by component: two UIs (FrontOffice and BackOffice), a shared API, an OLTP database, Blob Storage, a cache and a data warehouse.
+- <strong>Asynchronous processing</strong> with Queue Storage and Azure Functions for tasks that do not need an immediate response, such as order confirmation.
+- <strong>Azure Cache for Redis</strong> for the cart, session and frequently accessed data, aiming for a fluid experience.
+- <strong>Data warehouse and ETL</strong> with Azure Data Factory for the business's strategic analysis.
+- <strong>Terraform infrastructure</strong> split into three repositories with a single responsibility each, referencing shared resources across them.
+
+## Stack
+
+Azure (App Service, Queue Storage, Functions, SQL Database, Blob Storage, Cache for Redis, Data Factory), Terraform.
+
+------------------------------------------
+
+# E-commerce System Description
+------------
+
+- Scalable and robust cloud infrastructure.
+- Management of online sales operations.
+- Support a high volume of transactions.
+- Provide a fluid user experience through a main portal.
+- Allow internal management of products and orders from a BackOffice.
+- Offer advanced analytical capabilities over sales data for strategic decision making.
+- A platform able to efficiently handle intensive tasks, or tasks that do not require an immediate response to the user, in the background.
+- Ensure the user experience is not affected by long-running processes, such as order confirmation, complex inventory updates or mass notification generation.
+
+
+# Services Identified for Use
+------------
+
+- Azure App Service - FrontOffice WebApp
+- Azure App Service - BackOffice WebApp
+- Azure App Service - API WebApp
+- Queue storage - Queue for tasks without an immediate response
+- Azure Functions - Serverless for running background tasks
+
+- Azure SQL Database - OLTP DB
+- BLOB Storage - Media storage
+- Azure Cache for Redis - Volatile data storage
+
+- Azure SQL Database - Data warehouse
+- Azure Data Factory - ETL orchestrator
+
+# Solution Design
+
+![Architecture Diagram](/assets/img/projects/infra-ecommerce/Arquitectura_Nube_Ecommerce.drawio.png)
+
+## Justification of the Architectural Components
+
+- **Two web servers for the UI**. Separate responsibilities between a FrontOffice and a BackOffice, and improve security.
+- **SQL OLTP DB**. Host the business's transactional information.
+- **BLOB Storage.** Store static content and all of the business's media files.
+- **Web server for the API.** Handles access to the business data stores. One API shared by both UIs, since the business-side UI does not demand enough computing cost to justify separate APIs.
+- **Queue Storage and Azure Functions.** Handle background tasks that do not require an immediate response, to avoid a high workload on the server hosting the API.
+- **Azure Cache for Redis.** Host frequently visited data, the shopping cart and customer session, to achieve a fluid UX.
+- **Azure Data Factory and DW**. An orchestrator to handle the ETL process between the business's OLTP DB and the data warehouse that stores data ready for strategic analysis.
+
+### More Detailed Justification of the Services (optional)
+
+- Each type of user (customers, editors) can access from a **UI** on a dedicated server (**FrontOffice and BackOffice**).
+- The **UIs** take information from the **SQL database** through a single **API** (it was decided to keep a single API because business management requires a much lower computing cost than that generated by customers).
+- The customer UI prioritizes efficiency and a fluid user experience, so it can send messages to **Queue storage** for orders, transactions, etc., which are then executed in the background by a **Serverless** service.
+- The customer UI will use **caching (Azure Cache for Redis)** to host information such as the shopping cart, session data and frequently visited information, ensuring a **delay-free user experience**.
+- For business analysis, the **Data Factory orchestrator** runs the **ETL process** between the **OLTP database and the data warehouse**, so the data warehouse information can then be requested by the API or an external tool (Power BI), and business management can **perform strategic analysis**.
+
+
+# Deployment Evidence
+
+### Deployment of the application infrastructure services
+
+Creation of the resource group:
+
+![Resource group](/assets/img/projects/infra-ecommerce/20250620120733.png)
+
+![Resource group 2](/assets/img/projects/infra-ecommerce/20250620120909.png)
+
+Creation of the three Service Plans and their respective Web Apps:
+
+![Service Plan 1](/assets/img/projects/infra-ecommerce/20250620144536.png)
+
+![Service Plan 2](/assets/img/projects/infra-ecommerce/20250620144813.png)
+
+![Service Plan 3](/assets/img/projects/infra-ecommerce/20250620144929.png)
+
+Creation of the Queue Storage and Azure Functions services (Serverless services):
+
+![Queue Storage](/assets/img/projects/infra-ecommerce/20250620212226.png)
+
+![Azure Functions](/assets/img/projects/infra-ecommerce/20250620212324.png)
+
+### Deployment of the storage infrastructure services
+
+Creation of the OLTP DB
+
+![DB OLTP 1](/assets/img/projects/infra-ecommerce/20250620215008.png)
+
+![DB OLTP 2](/assets/img/projects/infra-ecommerce/20250620215100.png)
+
+Creation of the BLOB Storage
+
+![BLOB 1](/assets/img/projects/infra-ecommerce/20250620220716.png)
+
+![BLOB 2](/assets/img/projects/infra-ecommerce/20250620220749.png)
+
+Creation of Azure Cache for Redis:
+
+![Redis 1](/assets/img/projects/infra-ecommerce/20250620223418.png)
+
+![Redis 2](/assets/img/projects/infra-ecommerce/20250620223447.png)
+
+### Deployment of the analytics infrastructure services
+
+Creation of the DB for the data warehouse
+
+![OLAP 1](/assets/img/projects/infra-ecommerce/20250620230219.png)
+
+![OLAP 2](/assets/img/projects/infra-ecommerce/20250620230240.png)
+
+Creation of Azure Data Factory (ETL orchestrator)
+
+![Data Factory 1](/assets/img/projects/infra-ecommerce/20250620231349.png)
+
+![Data Factory 2](/assets/img/projects/infra-ecommerce/20250620231709.png)
+
+
+# Code in Three Independent Repositories
+------------
+
+The resources were separated into business modules, in three different repositories:
+
+- Applications module
+- Storage module
+- Analytics module
+
+On discovering that resources can be shared (e.g. a database service can be shared by the DW and OLTP databases, a storage account service can be shared by Queue Storage and Azure Functions), the separation of repositories depends on more communication about the services being created.
+
+## Applications Infrastructure Repository
+
+UI and asynchronous tasks
+
+- Azure App Service - FrontOffice WebApp
+- Azure App Service - BackOffice WebApp
+- Azure App Service - API WebApp
+- Queue storage - Queue for tasks without an immediate response
+- Azure Functions - Serverless for running background tasks
+
+## Storage Infrastructure Repository
+
+Everything related to real-time data and cache.
+
+- Azure SQL Database - OLTP DB
+- BLOB Storage - Media storage
+- Azure Cache for Redis - Volatile data storage
+
+## Analytics Infrastructure Repository
+
+For the data warehouse and ETL orchestration.
+
+- Azure SQL Database - DW
+- Azure Elastic Jobs - ETL orchestrator
+
+# Final Reflections
+------------
+
+## Splitting the Infrastructure into Repositories
+
+- Initially the idea was to split strictly by the services offered (e.g. everything related to storage in one repository, everything related to the UI in another and everything related to serverless functionality in a third).
+- In the end the services were grouped into three categories of activity (UI, storage and analytics), so each repository has a single responsibility.
+- With this kind of separation, some resources that were meant to be shared ended up in different repositories. This problem was the perfect scenario to practice referencing services from a different repository.
+
+## System Implemented for Asynchronous Background Task Processing
+
+- The application is made of a single API consumed by two UIs. This decision was made because the BackOffice UI will not represent as large a computing load as the FrontOffice UI.
+- To further reduce API consumption by the FrontOffice, a Redis Cache service is used. It can be used to manage the session, the shopping cart and even data frequently visited by the customer.
+- A Queue Storage service is also used to queue user tasks that do not demand an immediate response (e.g. purchase confirmation, transactions). These tasks or messages are then executed by the Azure Functions service, which works serverlessly and mitigates unnecessary load on the application's general API.
+
+## Use of a Data Warehouse and an ETL Orchestration Tool
+
+- An OLTP database that stores all of the business's transactional information, a service called Azure Data Factory (orchestrator) and the data warehouse that stores the information processed for business analysis are the tools involved in making decisions from data.
+- The stored procedures that are part of the ETL are hosted in the data warehouse; the orchestrator simply handles the workflow run by the ETL.
+- Using these elements to build a DW is an excellent and cheaper option than others (developing AI for business analysis or Azure Synapse Analytics), and business statistics can be identified precisely through the processed data.
+
+# Personal Experience with the Project
+---------------------------
+
+- Personally, this is the first time I use professional cloud services.
+- Developing a cloud infrastructure and creating the services in Terraform for a project like this is straightforward once you know which services you need to create.
+
+- Analyzing the required services is a complex process, since there are many options and many technologies (some could be the right ones, but lack of experience with them may rule them out as an option) to satisfy business needs.
+- As a personal opinion, the key to knowing which services can be used is to identify the cost of the services within the client's means, and also to understand how a technology works and whether it is the right one to cover a need of the application to be implemented.
+
+</div>
 

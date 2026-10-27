@@ -1,167 +1,130 @@
 ---
+import Bi from "./Bi.astro";
 import { contactInformation } from "../content/contactInformation.ts";
+
+const field = "w-full px-4 py-2.5 rounded-xl border border-field-border bg-field text-base text-fg placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition";
+const row = "flex items-center space-x-3 sm:space-x-4 bg-inner p-3 sm:p-4 rounded-xl shadow-sm w-full xs:min-w-[250px] xs:flex-1";
+const copyBtn = "w-11 h-11 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-full text-fg hover:bg-fg/10 transition-colors duration-300";
 ---
 
 <section id="contacto" class="section-spacing px-4 sm:px-0">
     <div class="container mx-auto px-2 sm:px-6">
-        <!-- Encabezado -->
         <div class="text-center mb-10 sm:mb-16" data-reveal="up">
-            <h2 class="text-3xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-3 xs:mb-4 text-gradient">Contacto</h2>
-            <p class="text-lg xs:text-xl text-white max-w-2xl mx-auto px-2">
-                ¿Tienes un proyecto en mente? ¡Hablemos y hagámoslo realidad!
+            <h2 class="text-3xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-3 xs:mb-4 text-gradient"><Bi es="Contacto" en="Contact" /></h2>
+            <p class="text-lg xs:text-xl text-fg max-w-2xl mx-auto px-2">
+                <Bi es="¿Tienes un proyecto en mente? ¡Hablemos y hagámoslo realidad!" en="Have a project in mind? Let's talk and make it happen!" />
             </p>
         </div>
-        
-        <!-- Contenedor principal -->
+
         <div class="grid md:grid-cols-2 gap-8 sm:gap-12 max-w-6xl mx-auto">
-            <!-- Tarjeta de información de contacto -->
+            <!-- Contact info -->
             <div class="space-y-6" data-reveal="left">
-                <div class="neomorphism dark:neomorphism-dark p-5 sm:p-8 rounded-2xl">
-                    <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white">
-                        Información de Contacto
+                <div class="neomorphism p-5 sm:p-8 rounded-2xl">
+                    <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-fg">
+                        <Bi es="Información de Contacto" en="Contact Information" />
                     </h3>
-                    
-                    <!-- Contenedor flexible para items de contacto -->
+
                     <div class="flex flex-col xs:flex-row flex-wrap gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
-                        <!-- Email -->
-                        <div class="flex items-center space-x-3 sm:space-x-4 bg-white/50 dark:bg-gray-800/50 p-3 sm:p-4 rounded-xl shadow-sm w-full xs:min-w-[250px] xs:flex-1">
+                        <div class={row}>
                             <div class="bg-primary-500 text-white p-2 sm:p-3 rounded-full text-sm sm:text-base">
-                                <i class="fas fa-envelope"></i>
+                                <i class="fas fa-envelope" aria-hidden="true"></i>
                             </div>
                             <div class="min-w-0">
                                 <h4 class="font-semibold text-sm sm:text-base">Email</h4>
-                                <a 
-                                    href={`mailto:${contactInformation.email}`}
-                                    target="_blank"
-                                    class="text-white hover:text-white/70 break-all text-xs sm:text-sm"
-                                >
+                                <a href={`mailto:${contactInformation.email}`} target="_blank" class="text-accent underline hover:opacity-80 break-all text-xs sm:text-sm">
                                     {contactInformation.email}
                                 </a>
                             </div>
                             <div class="ml-auto flex items-center shrink-0">
                                 <span class="text-xs mr-1" aria-live="polite" data-copy-status></span>
-                                <button type="button" data-copy={contactInformation.email} aria-label="Copiar correo"
-                                    class="w-11 h-11 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors duration-300">
-                                    <i class="far fa-copy"></i>
+                                <button type="button" data-copy={contactInformation.email} class={copyBtn}>
+                                    <i class="far fa-copy" aria-hidden="true"></i>
+                                    <span class="sr-only"><Bi es="Copiar correo" en="Copy email" /></span>
                                 </button>
                             </div>
                         </div>
-                        
-                        <!-- Teléfono -->
-                        <div class="flex items-center space-x-3 sm:space-x-4 bg-white/50 dark:bg-gray-800/50 p-3 sm:p-4 rounded-xl shadow-sm w-full xs:min-w-[250px] xs:flex-1">
+
+                        <div class={row}>
                             <div class="bg-primary-500 text-white p-2 sm:p-3 rounded-full text-sm sm:text-base">
-                                <i class="fas fa-phone"></i>
+                                <i class="fas fa-phone" aria-hidden="true"></i>
                             </div>
                             <div class="min-w-0">
-                                <h4 class="font-semibold text-sm sm:text-base">Teléfono</h4>
-                                <a 
-                                    href={`https://wa.me/${contactInformation.phoneNumber}`} 
-                                    target="_blank"
-                                    class="text-white hover:text-white/70 break-all text-xs sm:text-sm"
-                                >
+                                <h4 class="font-semibold text-sm sm:text-base"><Bi es="Teléfono" en="Phone" /></h4>
+                                <a href={`https://wa.me/${contactInformation.phoneNumber}`} target="_blank" class="text-accent underline hover:opacity-80 break-all text-xs sm:text-sm">
                                     {contactInformation.phoneNumber}
                                 </a>
                             </div>
                             <div class="ml-auto flex items-center shrink-0">
                                 <span class="text-xs mr-1" aria-live="polite" data-copy-status></span>
-                                <button type="button" data-copy={contactInformation.phoneNumber} aria-label="Copiar teléfono"
-                                    class="w-11 h-11 sm:w-9 sm:h-9 inline-flex items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors duration-300">
-                                    <i class="far fa-copy"></i>
+                                <button type="button" data-copy={contactInformation.phoneNumber} class={copyBtn}>
+                                    <i class="far fa-copy" aria-hidden="true"></i>
+                                    <span class="sr-only"><Bi es="Copiar teléfono" en="Copy phone number" /></span>
                                 </button>
                             </div>
                         </div>
-                        
-                        <!-- Ubicación -->
-                        <div class="flex items-center space-x-3 sm:space-x-4 bg-white/50 dark:bg-gray-800/50 p-3 sm:p-4 rounded-xl shadow-sm w-full xs:min-w-[250px] xs:flex-1">
+
+                        <div class={row}>
                             <div class="bg-primary-500 text-white p-2 sm:p-3 rounded-full text-sm sm:text-base">
-                                <i class="fas fa-map-marker-alt"></i>
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                             </div>
                             <div>
-                                <h4 class="font-semibold text-sm sm:text-base">Ubicación</h4>
-                                <p class="text-white text-xs sm:text-sm">Tegucigalpa D.C., Honduras</p>
+                                <h4 class="font-semibold text-sm sm:text-base"><Bi es="Ubicación" en="Location" /></h4>
+                                <p class="text-fg text-xs sm:text-sm">Tegucigalpa D.C., Honduras</p>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Redes sociales -->
-                    <div class="pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-600">
-                        <h4 class="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Puedes buscarme en:</h4>
+
+                    <div class="pt-6 sm:pt-8 border-t border-line">
+                        <h4 class="font-semibold mb-3 sm:mb-4 text-sm sm:text-base"><Bi es="Puedes buscarme en:" en="Find me on:" /></h4>
                         <div class="flex space-x-3 sm:space-x-4">
-                            <a href={contactInformation.linkedin} class="bg-blue-600 text-white w-11 h-11 flex items-center justify-center rounded-full hover:bg-blue-700 transition-colors duration-300 hover:scale-110 transform text-sm sm:text-base">
-                                <i class="fab fa-linkedin"></i>
+                            <a href={contactInformation.linkedin} target="_blank" rel="noopener noreferrer" class="bg-blue-700 text-white w-11 h-11 flex items-center justify-center rounded-full hover:bg-blue-800 transition-colors duration-300 hover:scale-110 transform text-sm sm:text-base">
+                                <i class="fab fa-linkedin" aria-hidden="true"></i><span class="sr-only">LinkedIn</span>
                             </a>
-                            <a href={contactInformation.github} class="bg-gray-800 text-white w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-900 transition-colors duration-300 hover:scale-110 transform text-sm sm:text-base">
-                                <i class="fab fa-github"></i>
+                            <a href={contactInformation.github} target="_blank" rel="noopener noreferrer" class="bg-gray-800 text-white w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-900 transition-colors duration-300 hover:scale-110 transform text-sm sm:text-base">
+                                <i class="fab fa-github" aria-hidden="true"></i><span class="sr-only">GitHub</span>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Formulario de contacto -->
+            <!-- Contact form -->
             <div class="space-y-6" data-reveal="right" data-reveal-delay="100">
-                <div class="neomorphism dark:neomorphism-dark p-5 sm:p-8 rounded-2xl">
-                    <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white">
-                        Envíame un mensaje
+                <div class="neomorphism p-5 sm:p-8 rounded-2xl">
+                    <h3 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-fg">
+                        <Bi es="Envíame un mensaje" en="Send me a message" />
                     </h3>
 
                     <form id="contact-form" novalidate class="space-y-4">
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="cf-name" class="block text-sm font-semibold mb-1 text-white">Nombre</label>
-                                <input
-                                    id="cf-name"
-                                    name="name"
-                                    type="text"
-                                    required
-                                    placeholder="Tu nombre"
-                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition"
-                                />
+                                <label for="cf-name" class="block text-sm font-semibold mb-1 text-fg"><Bi es="Nombre" en="Name" /></label>
+                                <input id="cf-name" name="name" type="text" required placeholder="Tu nombre" data-ph-es="Tu nombre" data-ph-en="Your name" class={field} />
                             </div>
                             <div>
-                                <label for="cf-email" class="block text-sm font-semibold mb-1 text-white">Email</label>
-                                <input
-                                    id="cf-email"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    placeholder="tu@email.com"
-                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition"
-                                />
+                                <label for="cf-email" class="block text-sm font-semibold mb-1 text-fg">Email</label>
+                                <input id="cf-email" name="email" type="email" required placeholder="tu@email.com" data-ph-es="tu@email.com" data-ph-en="you@email.com" class={field} />
                             </div>
                         </div>
 
                         <div>
-                            <label for="cf-subject" class="block text-sm font-semibold mb-1 text-white">Asunto</label>
-                            <input
-                                id="cf-subject"
-                                name="subject"
-                                type="text"
-                                placeholder="¿En qué te puedo ayudar?"
-                                class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition"
-                            />
+                            <label for="cf-subject" class="block text-sm font-semibold mb-1 text-fg"><Bi es="Asunto" en="Subject" /></label>
+                            <input id="cf-subject" name="subject" type="text" placeholder="¿En qué te puedo ayudar?" data-ph-es="¿En qué te puedo ayudar?" data-ph-en="How can I help you?" class={field} />
                         </div>
 
                         <div>
-                            <label for="cf-message" class="block text-sm font-semibold mb-1 text-white">Mensaje</label>
-                            <textarea
-                                id="cf-message"
-                                name="message"
-                                required
-                                rows="5"
-                                placeholder="Contame sobre tu proyecto..."
-                                class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70 text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition resize-none"
-                            ></textarea>
+                            <label for="cf-message" class="block text-sm font-semibold mb-1 text-fg"><Bi es="Mensaje" en="Message" /></label>
+                            <textarea id="cf-message" name="message" required rows="5" placeholder="Contame sobre tu proyecto..." data-ph-es="Contame sobre tu proyecto..." data-ph-en="Tell me about your project..." class={`${field} resize-none`}></textarea>
                         </div>
 
-                        <div id="cf-feedback" class="hidden text-sm font-medium px-4 py-2.5 rounded-xl"></div>
+                        <div id="cf-feedback" class="hidden text-sm font-medium px-4 py-2.5 rounded-xl" role="status"></div>
 
                         <button
                             type="submit"
                             id="cf-submit"
-                            class="w-full py-3 px-6 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+                            class="w-full py-3 px-6 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
                         >
-                            <i class="fas fa-paper-plane mr-2"></i>Enviar mensaje
+                            <i class="fas fa-paper-plane mr-2" aria-hidden="true"></i><Bi es="Enviar mensaje" en="Send message" />
                         </button>
                     </form>
                 </div>

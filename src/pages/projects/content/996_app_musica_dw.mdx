@@ -1,7 +1,9 @@
 ---
 
 title: 'Datawarehouse - WebApp Música '
-description: 'Desarrollo de un Datawarehouse para una aplicación de música'
+title_en: 'Data Warehouse - Music WebApp'
+description: 'Datawarehouse con modelo copo de nieve en Oracle PL/SQL, ETL orquestado con Java desde un CSV, análisis con cubos OLAP y visualización en Tableau.'
+description_en: 'Snowflake-schema data warehouse on Oracle PL/SQL, ETL orchestrated with Java from a CSV, OLAP cube analysis and Tableau visualization.'
 image: 
     url: '/assets/projects/datawarehouse-app-musica.webp'
     alt: Datawarehouse
@@ -16,7 +18,60 @@ links:
 
 ---
 
-Se ha desarrollado un Datawarehouse con el modelo copo de nieve (el análisis de las tablas de dimensión se realizó con cubos OLAP),
-usando la base de datos Oracle y su lenguaje PL/SQL para el desarrollo de los objetos a utilizar en el proceso ETL.
-Los datos de la app se econtraban almacenados en un archivo CSV y se ha gestionado el proceso ETL creando un orquestador con el lenguaje
-Java. Y se ha usado Tableau como herramienta DSS para la visualización de datos y toma de decisiones.
+<div data-lang="es">
+
+## Resumen
+
+Datawarehouse para una aplicación de música, construido para analizar sus datos y apoyar la toma de decisiones. Los datos de la app estaban en un archivo CSV y se llevaron a un modelo analítico en Oracle.
+
+## Qué construí
+
+- Un Datawarehouse con <strong>modelo copo de nieve</strong>; el análisis de las tablas de dimensión se realizó con <strong>cubos OLAP</strong>.
+- Objetos en <strong>Oracle PL/SQL</strong> para el proceso ETL.
+- Un <strong>orquestador en Java</strong> que gestiona el proceso ETL desde el archivo CSV.
+- Visualización en <strong>Tableau</strong> como herramienta DSS para la toma de decisiones.
+
+## Arquitectura y decisiones técnicas
+
+- <strong>Separación OLTP/OLAP:</strong> los datos de origen se transforman a un modelo dimensional pensado para consulta analítica, no para transacciones.
+- <strong>Copo de nieve:</strong> normaliza las dimensiones, reduciendo redundancia a cambio de más uniones al consultar.
+- <strong>Lógica ETL en la base de datos:</strong> los objetos PL/SQL viven junto a los datos, y el programa en Java solo coordina el flujo de trabajo.
+
+## Resultados
+
+Un flujo completo de inteligencia de negocio: del CSV al Datawarehouse y de ahí a visualizaciones para análisis.
+
+## Stack
+
+Oracle Database (PL/SQL), Java, Tableau, Git/GitHub.
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+A data warehouse for a music application, built to analyze its data and support decision making. The app's data was stored in a CSV file and was brought into an analytical model on Oracle.
+
+## What I built
+
+- A data warehouse with a <strong>snowflake schema</strong>; the dimension tables were analyzed with <strong>OLAP cubes</strong>.
+- <strong>Oracle PL/SQL</strong> objects for the ETL process.
+- A <strong>Java orchestrator</strong> that runs the ETL process from the CSV file.
+- Visualization in <strong>Tableau</strong> as a DSS tool for decision making.
+
+## Architecture and technical decisions
+
+- <strong>OLTP/OLAP separation:</strong> source data is transformed into a dimensional model designed for analytical queries, not transactions.
+- <strong>Snowflake schema:</strong> normalizes the dimensions, reducing redundancy at the cost of more joins when querying.
+- <strong>ETL logic in the database:</strong> the PL/SQL objects live next to the data, and the Java program only coordinates the workflow.
+
+## Key achievements
+
+A complete business intelligence flow: from the CSV to the data warehouse and from there to visualizations for analysis.
+
+## Stack
+
+Oracle Database (PL/SQL), Java, Tableau, Git/GitHub.
+
+</div>

@@ -8,7 +8,12 @@
 //  EDGE     travels source -> ETL (indigo), is transformed, then ETL -> dashboard (cyan -> emerald)
 //  ...and the dashboard releases it back to FREE with a gentle outward burst.
 
-const COLORS = { source: '102,126,234', etl: '34,211,238', dash: '52,211,153', free: '165,180,252' };
+// RGB triplets per theme; light mode uses darker tones so they stay visible on a light page
+const PALETTES = {
+  dark: { source: '59,130,246', etl: '34,211,238', dash: '52,211,153', free: '147,197,253' },
+  light: { source: '30,64,175', etl: '8,145,178', dash: '5,150,105', free: '37,99,235' },
+};
+const paletteFor = () => PALETTES[document.documentElement.classList.contains('dark') ? 'dark' : 'light'];
 const LAYOUT = {
   desktop: { sources: 4, etl: 3, dash: 3, particles: 70 },
   mobile: { sources: 3, etl: 2, dash: 2, particles: 25 },
@@ -37,6 +42,7 @@ export function initEtlBackground({ particlesOnly = false } = {}) {
   if ((!particlesOnly && !bctx) || !fctx) return;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let COLORS = paletteFor(); // refreshed on `themechange` (dispatched by theme-lang.js)
 
   let width = 0, height = 0;
   const safe = { x: 0, y: 0, w: 0, h: 0 }; // viewport minus the fixed nav
@@ -561,6 +567,11 @@ export function initEtlBackground({ particlesOnly = false } = {}) {
   });
 
   document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+
+  document.addEventListener('themechange', () => {
+    COLORS = paletteFor();
+    if (reduceMotion) drawStatic(); // animated mode picks the new colors on the next frame
+  });
 
   build();
   if (reduceMotion) {

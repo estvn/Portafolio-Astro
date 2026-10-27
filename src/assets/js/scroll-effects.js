@@ -18,15 +18,20 @@ export function initScrollProgress() {
 export function initTimelines() {
   const lines = document.querySelectorAll('.timeline-line');
   if (!lines.length || !motionAllowed()) return;
+  // Measure the unscaled parent: the line itself is scaled by --timeline, so its own
+  // rect shrinks/grows with the progress and made the value oscillate (flicker).
+  let raf = 0;
   const update = () => {
+    raf = 0;
     lines.forEach((line) => {
-      const rect = line.getBoundingClientRect();
+      const rect = line.parentElement.getBoundingClientRect();
       const progress = (window.innerHeight * 0.7 - rect.top) / rect.height;
-      line.style.setProperty('--timeline', Math.min(Math.max(progress, 0), 1));
+      line.style.setProperty('--timeline', Math.min(Math.max(progress, 0), 1).toFixed(3));
     });
   };
-  window.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('resize', update);
+  const schedule = () => { if (!raf) raf = requestAnimationFrame(update); };
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule);
   update();
 }
 

@@ -1,14 +1,38 @@
 ---
-const {title} = Astro.props;
+// title / titleEn: page-specific part (Spanish / English); both optional
+const { title, titleEn } = Astro.props;
+const base = "Estiven Mejía";
+const titleEs = title ? `${base} - ${title}` : `${base} - Ingeniero en Sistemas`;
+const titleEnFull = title || titleEn ? `${base} - ${titleEn ?? title}` : `${base} - Systems Engineer`;
+const descEs = "Portafolio de Estiven Mejía: ingeniero en sistemas, data engineer y backend developer. Proyectos, experiencia y contacto.";
+const descEn = "Portfolio of Estiven Mejía: systems engineer, data engineer and backend developer. Projects, experience and contact.";
 ---
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{title ? "Estiven Mejía - " + title : `Estiven Mejía - Ingeniero en Sistemas`}</title>
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#0b1426">
+    <title data-es={titleEs} data-en={titleEnFull}>{titleEs}</title>
+    <meta name="description" content={descEs} data-es={descEs} data-en={descEn}>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Previene flash de tema incorrecto al cargar -->
+    <!-- Runs before first paint: applies saved language (default es) and theme (default: system) to avoid a flash -->
     <script is:inline>
-      document.documentElement.classList.add('dark', 'js');
+      (function () {
+        var d = document.documentElement, lang, theme;
+        try { lang = localStorage.getItem('lang'); theme = localStorage.getItem('theme'); } catch (e) {}
+        if (lang !== 'en') lang = 'es';
+        if (theme !== 'dark' && theme !== 'light') theme = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        d.lang = lang;
+        d.dataset.theme = theme;
+        d.classList.toggle('dark', theme === 'dark');
+        d.classList.add('js');
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1426' : '#f8fafc');
+        var t = document.querySelector('title[data-es]');
+        if (t) document.title = t.getAttribute('data-' + lang) || document.title;
+        var m = document.querySelector('meta[name="description"][data-es]');
+        if (m) m.setAttribute('content', m.getAttribute('data-' + lang) || m.content);
+      })();
     </script>
 </head>

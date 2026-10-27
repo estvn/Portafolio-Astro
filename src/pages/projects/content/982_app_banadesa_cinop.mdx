@@ -1,7 +1,9 @@
 ---
 
 title: 'BANADESA (CINOP) - Transferencias Monetarias Condicionadas'
-description: 'Sistema de gestión de pagos con datos aislados por institución, control de acceso por roles e integración de impresoras y lectores de huella.'
+title_en: 'BANADESA (CINOP) - Conditional Cash Transfers'
+description: 'Sistema de gestión de pagos con un esquema de datos por institución, control de acceso por roles, impresoras y lectores de huella, desplegado en VPS con contenedores.'
+description_en: 'Payment management system with a data schema per institution, role-based access, printer and fingerprint reader integration, deployed on a VPS with containers.'
 image: 
     url: '/assets/projects/banadesa-tenants.svg'
     alt: Esquemas de datos separados por institución y lector de huella
@@ -14,19 +16,76 @@ links:
 
 ---
 
-## Contexto
+<div data-lang="es">
 
-Sistema de gestión de pagos de las transferencias monetarias condicionadas de BANADESA (CINOP), 
-donde los datos de cada institución deben mantenerse separados.
+## Resumen
 
-## Qué se construyó
+Sistema de gestión de pagos de las transferencias monetarias condicionadas de BANADESA (CINOP), donde los datos de cada institución deben mantenerse separados y el proceso de pago involucra hardware físico. Proyecto realizado como consultor para Oncorp.
 
-- <strong>Aislamiento de datos por institución</strong> mediante un esquema separado por cada una (enfoque single tenant) y <strong>control de acceso por roles</strong>.
-- Frontend y <strong>API REST</strong> con <strong>NestJS</strong>, conectada a la base de datos <strong>PostgreSQL</strong> y a una caché <strong>Redis</strong> para el sistema de gestión de pagos.
+## Mi rol
+
+Backend Developer (consultor). Participé en el frontend y la API REST, en el modelo de aislamiento de datos y en el despliegue de las aplicaciones.
+
+## Qué construí
+
+- <strong>Aislamiento de datos por institución</strong> mediante un esquema separado para cada una (enfoque single tenant) y <strong>control de acceso por roles</strong>.
+- Frontend y <strong>API REST con NestJS</strong>, conectada a <strong>PostgreSQL</strong> y a una caché <strong>Redis</strong>, para el sistema de gestión de pagos.
 - <strong>Integración de impresoras y lectores de huella</strong> al sistema web mediante una API local y el SDK del dispositivo.
-- Administración del <strong>despliegue en servidor VPS con contenedores</strong>.
+- Administración del <strong>despliegue en un servidor VPS con contenedores</strong> (Docker sobre Linux).
+
+## Arquitectura y decisiones técnicas
+
+- <strong>Un esquema por institución:</strong> separa físicamente los datos de cada una dentro de la base de datos, lo que reduce el riesgo de que una institución vea información de otra frente a un filtrado solo por columna.
+- <strong>Roles y permisos:</strong> el acceso a las acciones del sistema depende del rol del usuario, complementando el aislamiento por esquema.
+- <strong>API local para el hardware:</strong> un navegador no puede hablar directamente con el SDK de una impresora o un lector de huella, por lo que una API local hace de puente entre el sistema web y el dispositivo.
+- <strong>Caché con Redis:</strong> descarga a la base de datos de lecturas repetidas.
+- <strong>Contenedores en VPS:</strong> entornos reproducibles y despliegues consistentes.
 
 ## Resultados
 
-Un sistema web que mantiene separada la data de cada institución, restringe las acciones según el rol del usuario 
-y se conecta con el hardware necesario para el proceso de pagos.
+- Un sistema web que mantiene separada la data de cada institución y restringe las acciones según el rol.
+- Conexión del flujo de pagos con el hardware necesario (impresoras y lectores de huella) desde la aplicación web.
+- Aplicaciones desplegadas y administradas en un VPS con contenedores.
+
+## Stack
+
+NestJS, PostgreSQL, Redis, Docker, Linux, VPS, API REST.
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+Payment management system for BANADESA's conditional cash transfers (CINOP), where each institution's data must stay separate and the payment process involves physical hardware. Delivered as a consultant for Oncorp.
+
+## My role
+
+Backend Developer (consultant). I worked on the frontend and REST API, on the data isolation model and on deploying the applications.
+
+## What I built
+
+- <strong>Per-institution data isolation</strong> through a separate schema for each one (single-tenant approach) and <strong>role-based access control</strong>.
+- Frontend and <strong>REST API with NestJS</strong>, connected to <strong>PostgreSQL</strong> and a <strong>Redis</strong> cache, for the payment management system.
+- <strong>Printer and fingerprint reader integration</strong> into the web system through a local API and the device SDK.
+- Management of the <strong>deployment on a VPS server using containers</strong> (Docker on Linux).
+
+## Architecture and technical decisions
+
+- <strong>One schema per institution:</strong> physically separates each institution's data inside the database, lowering the risk of one institution seeing another's information compared to column-level filtering alone.
+- <strong>Roles and permissions:</strong> access to system actions depends on the user's role, complementing the schema-level isolation.
+- <strong>Local API for hardware:</strong> a browser cannot talk directly to a printer or fingerprint reader SDK, so a local API bridges the web system and the device.
+- <strong>Redis cache:</strong> offloads repeated reads from the database.
+- <strong>Containers on a VPS:</strong> reproducible environments and consistent deployments.
+
+## Key achievements
+
+- A web system that keeps each institution's data separate and restricts actions by role.
+- The payment flow connected to the required hardware (printers and fingerprint readers) from the web application.
+- Applications deployed and managed on a VPS with containers.
+
+## Stack
+
+NestJS, PostgreSQL, Redis, Docker, Linux, VPS, REST API.
+
+</div>

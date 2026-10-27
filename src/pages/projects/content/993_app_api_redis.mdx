@@ -1,6 +1,8 @@
 ---
 title: 'API REST & Redis'
-description: 'Desarrollo de API REST con almacenamiento de DB en Caché, herramientas de telemétrica, procesos ETL, autorizaciones con Firebase y uso de Docker.'
+description: 'API REST con FastAPI sobre 20,238 registros, ETL con Azure Data Factory, caché Redis con invalidación (de ~18 s a ~1.5-2.6 s), Firebase, telemetría y despliegue con Docker en Azure.'
+title_en: 'REST API & Redis'
+description_en: 'FastAPI REST API over 20,238 records, ETL with Azure Data Factory, Redis cache with invalidation (from ~18 s to ~1.5-2.6 s), Firebase auth, telemetry and Docker deployment on Azure.'
 image: 
   url: '/assets/projects/api-redis.jpg'
   alt: API Redis
@@ -15,6 +17,26 @@ links:
       url: "https://github.com/Estvn/projecto-redis"
   live: ''
 ---
+
+<div data-lang="es">
+
+## Resumen
+
+Proyecto personal de backend de punta a punta: migrar un dataset de 20,238 registros a Azure SQL con un pipeline ETL, exponerlo mediante una API REST segura con FastAPI, medir su rendimiento con telemetría y acelerarlo con una caché Redis que se invalida automáticamente. Termina desplegado como contenedor en Azure.
+
+## Logros clave
+
+- <strong>Pipeline ETL con Azure Data Factory</strong> desde un CSV hacia Azure SQL Database (20,238 registros, 6 columnas seleccionadas).
+- <strong>Autenticación y autorización</strong> con Firebase y JWT con tiempo de vida; la creación de registros está restringida a usuarios administradores.
+- <strong>Caché Redis con invalidación automática</strong>: sin caché las respuestas promediaban unos 18 segundos; con datos en caché las consultas bajaron a entre 1.5 y 2.6 segundos en desarrollo, y a 1.24 s y 878 ms en el despliegue en Azure.
+- <strong>Telemetría con Application Insights</strong> (OpenTelemetry) para medir tiempos de respuesta, peticiones, fallos y disponibilidad.
+- <strong>Contenedorización con Docker</strong>, imagen publicada en Azure Container Registry y ejecutada en una Web App de Azure.
+
+## Stack
+
+Azure (Data Factory, SQL Database, Cache for Redis, Container Registry, App Service, Application Insights), Terraform, FastAPI, Python, Redis, Firebase, Docker.
+
+------------------------------------------
 
 # **Creación de un Pipeline de Datos y API con Caché Inteligente**
 
@@ -362,4 +384,374 @@ Guardando información en Redis desde el proyecto Desplegado
 
 ![Redis guardado](/assets/img/projects/api-redis/20250725141112.png)
 
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+A personal end-to-end backend project: migrate a dataset of 20,238 records into Azure SQL with an ETL pipeline, expose it through a secure FastAPI REST API, measure its performance with telemetry and speed it up with a Redis cache that invalidates automatically. It ends up deployed as a container on Azure.
+
+## Key achievements
+
+- <strong>ETL pipeline with Azure Data Factory</strong> from a CSV into Azure SQL Database (20,238 records, 6 selected columns).
+- <strong>Authentication and authorization</strong> with Firebase and JWT with a limited lifetime; record creation is restricted to admin users.
+- <strong>Redis cache with automatic invalidation</strong>: without the cache, responses averaged about 18 seconds; with data in cache, queries dropped to between 1.5 and 2.6 seconds in development, and to 1.24 s and 878 ms in the Azure deployment.
+- <strong>Telemetry with Application Insights</strong> (OpenTelemetry) to measure response times, requests, failures and availability.
+- <strong>Containerization with Docker</strong>, image published to Azure Container Registry and run on an Azure Web App.
+
+## Stack
+
+Azure (Data Factory, SQL Database, Cache for Redis, Container Registry, App Service, Application Insights), Terraform, FastAPI, Python, Redis, Firebase, Docker.
+
+------------------------------------------
+
+# **Building a Data Pipeline and API with Smart Caching**
+
+## Project Goal
+
+Build a complete backend solution that demonstrates the ability to migrate data at scale, expose it through a secure and optimized API, and deploy it in a production cloud environment. The project culminates in a monitoring system and a cache strategy with automatic invalidation.
+
+------------------------------------------
+
+# Phase 1: Data Preparation and Migration
+
+## Dataset Selection
+
+- A Kaggle dataset about anime was chosen, with exactly 20,238 records.
+- The dataset has 12 columns; 6 columns with the most relevant information were selected: title, type, year, score, episodes, genres.
+
+## Data Migration with Azure Data Factory
+
+- Azure Data Factory was used as the orchestrator for an ETL process that extracts columns from a .csv into an Azure SQL database.
+- Azure Data Factory must be connected to the storage services used by the ETL.
+
+Connection to the storage services from Azure Data Factory:
+
+![ADF connection](/assets/img/projects/api-redis/20250723140250.png)
+
+Creation of the datasets tied to the storage services:
+
+![ADF datasets](/assets/img/projects/api-redis/20250723145831.png)
+
+Completed pipeline:
+
+![Complete pipeline](/assets/img/projects/api-redis/20250723154809.png)
+
+Services created for the data pipeline:
+
+![Pipeline services](/assets/img/projects/api-redis/20250723155128.png)
+
+------------------------------------
+
+# Phase 2: API Development and Authentication
+
+## Technology
+
+- FastAPI was used to build the REST API.
+
+The libraries/dependencies used in the FastAPI project are shown below:
+
+```
+python3 -m venv env-api
+pip install fastapi
+pip install uvicorn
+
+pip install dotenv
+pip install pyodbc
+
+pip install pyrebase
+pip install firebase-admin
+pip install firebase
+```
+
+## Authentication and Authorization with Firebase
+
+- Firebase was implemented to manage user sign-up and sign-in in the application.
+- JWT with a limited lifetime was implemented for user authentication and authorization on certain API endpoints.
+
+### Signup Endpoint
+
+- The tests in these screenshots were run in a development environment.
+
+Sending sign-up data from Postman:
+
+![Postman signup](/assets/img/projects/api-redis/20250724164844.png)
+
+User registered in the database:
+
+![User in DB](/assets/img/projects/api-redis/20250724104455.png)
+
+User registered in Firebase:
+
+![Firebase user](/assets/img/projects/api-redis/20250724104529.png)
+
+### Signin Endpoint
+
+- The tests in these screenshots were run in a development environment.
+
+User login response:
+
+![Login response](/assets/img/projects/api-redis/20250724164908.png)
+
+### Endpoint to Get the Full Data List
+
+- The tests in these screenshots were run in a development environment.
+
+Response time when fetching the full anime list:
+
+![Response time](/assets/img/projects/api-redis/20250724133250.png)
+
+Anime list endpoint with a filter:
+
+![Anime filter](/assets/img/projects/api-redis/20250724165106.png)
+
+------------------------------------
+
+# Phase 3: Performance Monitoring
+
+## Application Insights Setup
+
+Creation of the Application Insights service in the resource group:
+
+![App Insights](/assets/img/projects/api-redis/20250724172047.png)
+
+Libraries/dependencies required for the telemetry tool in the API:
+
+```
+pip install azure-monitor-opentelemetry
+pip install opentelemetry-instrumentation-fastapi
+```
+
+Logs generated by the telemetry tool (demonstrating a correct implementation):
+
+![Telemetry logs](/assets/img/projects/api-redis/20250724173655.png)
+
+## Load Tests
+
+- Multiple requests were sent to the endpoint that lists all animes without filters.
+- **These screenshots correspond to tests of the application in a development environment.**
+
+Charts of server response, requests, failures and availability:
+
+![Performance charts](/assets/img/projects/api-redis/20250724174823.png)
+
+Average response time of the application:
+
+![Response time](/assets/img/projects/api-redis/20250724174952.png)
+
+------------------------------------
+
+# Phase 4: Redis Cache Implementation
+
+## Redis Integration
+
+Library used to implement the Redis cache in the API:
+
+```
+pip install redis
+```
+
+## Cache Persistence and the Dynamic Keys Challenge:
+
+- **The following screenshots correspond to tests in a development environment.**
+
+**In the following screenshots a query is made and the cache should hold data.**
+
+Verifying that the cache is clean:
+
+![Clean cache](/assets/img/projects/api-redis/20250724204326.png)
+
+Running a query to store data in the cache (21.01 seconds):
+
+![Initial query](/assets/img/projects/api-redis/20250724204438.png)
+
+- The previous test takes a considerable time because of the cache read, fetching data from the DB and writing to the cache.
+
+Checking the cached data again:
+
+![Cache query](/assets/img/projects/api-redis/20250724204511.png)
+
+Running the query again, which should look for data in the cache and take less time:
+
+2.61 seconds
+
+![Fast query](/assets/img/projects/api-redis/20250724204535.png)
+
+2.26 seconds:
+
+![Fast query 2](/assets/img/projects/api-redis/20250724204555.png)
+
+Running a query with a type filter (18.77 seconds):
+
+![Filtered query](/assets/img/projects/api-redis/20250724204701.png)
+
+Checking that the key and its data now exist in the cache:
+
+![Key in cache](/assets/img/projects/api-redis/20250724204747.png)
+
+Running the query again
+
+1.90 seconds:
+
+![Fast query](/assets/img/projects/api-redis/20250724204838.png)
+
+6.96 seconds:
+
+![Fast query 2](/assets/img/projects/api-redis/20250724204856.png)
+
+------------------------------------
+
+# Phase 5: Cache Invalidation
+
+## Creation Endpoint
+
+- When a new record is created in the database table, the Redis cache keys related to the inserted data must be deleted.
+
+Creating a new anime, inserting the Type:
+
+![Anime creation](/assets/img/projects/api-redis/20250724222240.png)
+
+The "all" key should now be deleted from the cache:
+
+![Cache cleared](/assets/img/projects/api-redis/20250724222317.png)
+
+Inserting into the DB with the type stored in the cache and checking the cache again:
+
+![Cache verification](/assets/img/projects/api-redis/20250724222429.png)
+
+Running the query with the type filter again takes 4.24 seconds because there is no data in the cache anymore, so it queries the DB and writes to the cache again:
+
+![New query](/assets/img/projects/api-redis/20250724222632.png)
+
+Getting data from the cache:
+
+![Data in cache](/assets/img/projects/api-redis/20250724222652.png)
+
+## Invalidation Logic
+
+Trying to create a record with a non-admin user:
+
+![Non-admin user](/assets/img/projects/api-redis/20250724214608.png)
+
+## Flow Verification
+
+Checking the cache:
+
+![Cache verification](/assets/img/projects/api-redis/20250724221551.png)
+
+Requesting all animes from the DB (7.53 seconds):
+
+![DB request](/assets/img/projects/api-redis/20250724221733.png)
+
+Checking the cache:
+
+![Cache verified](/assets/img/projects/api-redis/20250724221800.png)
+
+Getting data from the cache (2.51 seconds):
+
+![Cache data](/assets/img/projects/api-redis/20250724221854.png)
+
+Getting data with a type filter (3.72 seconds):
+
+![Type filter](/assets/img/projects/api-redis/20250724222003.png)
+
+Checking the insertion in the cache:
+
+![Cache insertion](/assets/img/projects/api-redis/20250724222031.png)
+
+Getting data from the cache (1.48 seconds):
+
+![Cache data](/assets/img/projects/api-redis/20250724222116.png)
+
+## API Metrics with Application Insights
+
+Metrics with the API response times:
+
+![Metrics 1](/assets/img/projects/api-redis/20250724223515.png)
+
+![Metrics 2](/assets/img/projects/api-redis/20250724223537.png)
+
+![Metrics 3](/assets/img/projects/api-redis/20250724223555.png)
+
+Without the cache, response times averaged 18 seconds:
+
+![Without cache 1](/assets/img/projects/api-redis/20250724224544.png)
+
+![Without cache 2](/assets/img/projects/api-redis/20250724224613.png)
+
+In this example it read from the cache:
+
+![Cache read](/assets/img/projects/api-redis/20250724224801.png)
+
+------------------------------------
+
+# Phase 6: Cloud Deployment with Docker
+
+## Containerization
+
+Creating the Docker image:
+
+![Docker image](/assets/img/projects/api-redis/20250724233638.png)
+
+![Docker image 2](/assets/img/projects/api-redis/20250724233704.png)
+
+Project container running:
+
+![Running container](/assets/img/projects/api-redis/20250724234423.png)
+
+## Cloud Release
+
+Creating the ACR and the Azure Web App:
+
+![ACR and Web App](/assets/img/projects/api-redis/20250725101022.png)
+
+Publishing the image to the ACR:
+
+```
+az login
+az acr login --name {acranimeprojectdev}
+```
+
+![ACR publishing](/assets/img/projects/api-redis/20250725101830.png)
+
+```
+docker tag anime-api:latest acranimeprojectdev.azurecr.io/api-anime:0.0.1
+```
+
+![Image tag](/assets/img/projects/api-redis/20250725102402.png)
+
+![Image push](/assets/img/projects/api-redis/20250725102418.png)
+
+![Push process](/assets/img/projects/api-redis/20250725103100.png)
+
+![Image uploaded](/assets/img/projects/api-redis/20250725103114.png)
+
+Linking the ACR with the Web App
+
+![ACR link](/assets/img/projects/api-redis/20250725104259.png)
+
+![Web App configuration](/assets/img/projects/api-redis/20250725104520.png)
+
+## **Production Tests**
+
+![Production test 1](/assets/img/projects/api-redis/20250725105452.png)
+
+![Production test 2](/assets/img/projects/api-redis/20250725105510.png)
+
+### Testing REDIS in the deployed project
+
+1.24 seconds:
+
+![Redis test 1](/assets/img/projects/api-redis/20250725141036.png)
+
+878 milliseconds
+
+![Redis test 2](/assets/img/projects/api-redis/20250725141056.png)
+
+Saving data in Redis from the deployed project
+
+![Redis saved](/assets/img/projects/api-redis/20250725141112.png)
+
+</div>
 

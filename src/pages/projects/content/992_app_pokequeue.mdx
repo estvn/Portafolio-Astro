@@ -1,6 +1,8 @@
 ---
 title: 'Proyecto Serverless'
-description: 'Desarrollo de API REST con FastAPI, UI Background usando Azure Functions y uso de Docker.'
+description: 'Extensión de una app desplegada en Azure: borrado de reportes en BD y Blob Storage, CSV enriquecidos desde PokeAPI con Azure Functions y reportes con muestreo, sobre Next.js y FastAPI.'
+title_en: 'Serverless Project'
+description_en: 'Extension of an app deployed on Azure: report deletion across DB and Blob Storage, CSV reports enriched from PokeAPI via Azure Functions, and sampled reports, on Next.js and FastAPI.'
 image: 
   url: '/assets/projects/azure-serverless.jpg'
   alt: Proyecto Serverless
@@ -21,6 +23,25 @@ links:
       url: "https://github.com/Estvn/ui-pokequeue"
   live: ''
 ---
+
+<div data-lang="es">
+
+## Resumen
+
+PokeQueue es una aplicación base desplegada en Azure que genera reportes en CSV de forma asíncrona: una UI en Next.js, una API en FastAPI, una base de datos SQL Server, Blob Storage para los archivos y una Azure Function (Python) que procesa los reportes en segundo plano. El proyecto consistió en extenderla con nuevas funcionalidades sin romper su despliegue.
+
+## Logros clave
+
+- <strong>Eliminación completa de reportes</strong> (UI con modal de confirmación, endpoint DELETE, procedimiento almacenado con borrado lógico y borrado del CSV en Blob Storage).
+- <strong>Reportes enriquecidos</strong>: el worker serverless consulta PokeAPI por cada Pokémon y agrega hp, ataque, defensa, ataque especial, defensa especial, velocidad y habilidades al CSV.
+- <strong>Reportes con muestreo</strong>: el usuario define cuántos registros desea, y el valor viaja por la UI, la API, la base de datos y el worker.
+- Cambios coordinados en cinco repositorios (UI, API, serverless, base de datos e infraestructura).
+
+## Stack
+
+Next.js / React, FastAPI (Python), Azure Functions, Azure Blob Storage, SQL Server, Docker, Terraform.
+
+------------------------------------------
 
 # Objetivo del Proyecto
 
@@ -150,6 +171,158 @@ En este ejemplo se pidieron 20 registros para el reporte:
 En la UI se ha agregado el campo de la cantidad de registros en el reporte:
 
 ![Cantidad en UI](/assets/img/projects/app-pokequeue/20250808114504.png)
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+PokeQueue is a base application deployed on Azure that generates CSV reports asynchronously: a Next.js UI, a FastAPI API, a SQL Server database, Blob Storage for the files and an Azure Function (Python) that processes reports in the background. The project consisted of extending it with new features without breaking its deployment.
+
+## Key achievements
+
+- <strong>Full report deletion</strong> (UI with a confirmation modal, DELETE endpoint, stored procedure with soft delete and removal of the CSV from Blob Storage).
+- <strong>Enriched reports</strong>: the serverless worker queries PokeAPI for each Pokémon and adds hp, attack, defense, special attack, special defense, speed and abilities to the CSV.
+- <strong>Sampled reports</strong>: the user chooses how many records they want, and the value travels through the UI, the API, the database and the worker.
+- Coordinated changes across five repositories (UI, API, serverless, database and infrastructure).
+
+## Stack
+
+Next.js / React, FastAPI (Python), Azure Functions, Azure Blob Storage, SQL Server, Docker, Terraform.
+
+------------------------------------------
+
+# Project Goal
+
+Extend and adapt this base application, adding new features and demonstrating the ability to modify and improve an existing system that must remain deployed and working on Azure.
+
+-------------------------------------------------------
+
+# System Architecture
+
+![PokeQueue Diagram](/assets/img/projects/app-pokequeue/DiagramaPokeQueue.svg)
+
+-------------------------------------------------------
+
+# Tasks to Complete (Total: 90 Points)
+
+## Task 1: Implement Full Report Deletion (25 Points)
+
+### Frontend (NextJs)
+
+- A delete button was added to each report row, with a confirmation modal as an extra safety step. On confirmation, a call is made to the API that deletes the report records from the Database and the BLOB Storage. When the confirmation reaches the frontend, the report list is refreshed.
+
+![Delete button](/assets/img/projects/app-pokequeue/20250807205501.png)
+
+![Confirmation modal](/assets/img/projects/app-pokequeue/20250807205549.png)
+
+![Deletion confirmation](/assets/img/projects/app-pokequeue/20250807205605.png)
+
+Record 65 was deleted:
+
+![Deleted record](/assets/img/projects/app-pokequeue/20250807205642.png)
+
+Refreshed list:
+
+![Updated list](/assets/img/projects/app-pokequeue/20250807205728.png)
+
+### Backend (FastAPI)
+
+- An API endpoint was created that receives an HTTP DELETE request with the ID of the item to delete.
+- This endpoint triggers a series of actions:
+	- First, it checks whether the item is already "deleted in the database". If it is, it returns a 404 status; if it is not "deleted", it is removed from the database.
+	- Once the item is deleted from the database, it deletes the CSV file from the BLOB Storage, and once that is done the endpoint response is sent.
+
+Showing the record in the DB:
+
+![Record in DB](/assets/img/projects/app-pokequeue/20250807211011.png)
+
+Showing the record in the BLOB:
+
+![Record in blob](/assets/img/projects/app-pokequeue/20250807211031.png)
+
+Sending the request:
+
+![DELETE request](/assets/img/projects/app-pokequeue/20250807210835.png)
+
+Item deleted:
+
+![DB after deletion](/assets/img/projects/app-pokequeue/20250807211100.png)
+
+![Blob after deletion](/assets/img/projects/app-pokequeue/20250807211118.png)
+
+![State after deletion](/assets/img/projects/app-pokequeue/20250807211138.png)
+
+The previous screenshot was not up to date and only reports 63 and 64 should remain
+
+![Final state](/assets/img/projects/app-pokequeue/20250807211157.png)
+
+Stored procedure to delete reports:
+
+```
+ALTER PROCEDURE pokequeue.delete_poke_request(@id int)
+AS
+SET NOCOUNT ON;
+BEGIN
+
+UPDATE pokequeue.[requests]
+	SET [active] = 0
+where id = @id AND [active] != 0;
+
+IF @@ROWCOUNT > 0
+	SELECT 1 AS response;
+ELSE
+	SELECT 0 AS response;
+
+END;
+
+EXEC pokequeue.delete_poke_request 70;
+```
+
+----------------------------------------------
+
+## Task 2: Enrich the Report with Pokémon Details (40 Points)
+
+### Worker (Azure Function - Python)
+
+- The CSV files, whose relevant data was the Pokémon name and information URL, were updated with more fields with relevant data such as hp, attack, defense, special-attack, special-defense, speed and a field storing several abilities.
+- This data was obtained by making another call to the PokeAPI through a unique URL for each Pokémon of the type that was retrieved.
+
+- The functions that live in Azure Functions as a "Serverless" service were updated to generate CSV files with more content.
+
+![Extended data](/assets/img/projects/app-pokequeue/20250808003850.png)
+
+----------------------------------------------
+
+## Task 3: Reports with Random Sampling (25 Points)
+
+### Frontend (Next Js)
+
+- In the UI, before generating a new report, the user is asked to enter a number for the amount of records wanted in the report CSV
+
+![Quantity field](/assets/img/projects/app-pokequeue/20250808111909.png)
+
+### Backend (FastAPI API)
+
+- The backend endpoint for report creation was modified so it can receive the number of Pokémon.
+- The database was modified by adding a field for the number of samples to be recorded in the report
+
+![DB modification](/assets/img/projects/app-pokequeue/20250808114147.png)
+
+### Worker (Azure Function - Python)
+
+- The Function App that runs the background process was modified to get the number of records per report, and from that number filter the amount of Pokémon to be recorded in the report.
+
+In this example 20 records were requested for the report:
+
+![20-record report](/assets/img/projects/app-pokequeue/20250808114429.png)
+
+The records-quantity field was added to the UI:
+
+![Quantity in UI](/assets/img/projects/app-pokequeue/20250808114504.png)
+
+</div>
 
 
 

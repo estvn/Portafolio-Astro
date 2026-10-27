@@ -1,7 +1,9 @@
 ---
 
 title: 'Tracking de trabajo en campo - NACEL'
-description: 'Gestor de proyectos para la instalación de torres de telecomunicaciones con arquitectura hexagonal, API externa de tracking y CI/CD.'
+title_en: 'Field Work Tracking - NACEL'
+description: 'Gestor de proyectos para instalación de torres de telecomunicaciones: arquitectura hexagonal con NestJS, API externa de tracking, base de datos normalizada y CI/CD.'
+description_en: 'Project manager for telecom tower installation: hexagonal architecture with NestJS, external tracking API, normalized database and CI/CD.'
 image: 
     url: '/assets/projects/nacel-tracking.svg'
     alt: Torre de telecomunicaciones con seguimiento en campo
@@ -14,16 +16,72 @@ links:
 
 ---
 
-## Contexto
+<div data-lang="es">
 
-Sistema para dar seguimiento al trabajo en campo durante la instalación de torres de telecomunicaciones.
+## Resumen
 
-## Qué se construyó
+Sistema para dar seguimiento al trabajo en campo durante la instalación de torres de telecomunicaciones: proyectos, avance y datos de operación en un solo lugar. Desarrollado durante mi práctica como Fullstack Developer en NACEL (2025 - 2026).
 
-- Un gestor de proyectos con <strong>frontend y API REST</strong> bajo <strong>arquitectura hexagonal</strong>.
-- Integración con una <strong>API externa de tracking de campo</strong>, cuya data se almacena en una <strong>base de datos normalizada</strong>.
-- <strong>Automatización de pruebas y despliegue continuo (CI/CD)</strong>.
+## Mi rol
+
+Fullstack Developer. Desarrollé el gestor de proyectos completo (frontend y API REST), la integración con la fuente externa de tracking y la automatización de pruebas y despliegue.
+
+## Qué construí
+
+- Un gestor de proyectos para instalación de torres con <strong>frontend y API REST</strong> bajo <strong>arquitectura hexagonal</strong>, con backend en <strong>NestJS</strong>.
+- Integración con una <strong>API externa de tracking de campo</strong>, cuya data se almacena en una <strong>base de datos MySQL normalizada</strong>.
+- <strong>Automatización de pruebas y despliegue continuo (CI/CD)</strong> con GitHub Actions.
+
+## Arquitectura y decisiones técnicas
+
+- <strong>Arquitectura hexagonal:</strong> la lógica de negocio queda aislada de frameworks, base de datos y servicios externos mediante puertos y adaptadores. Esto separa responsabilidades y facilita las pruebas, ya que el dominio se prueba sin levantar infraestructura.
+- <strong>Integración como adaptador:</strong> la API externa de tracking se consume desde un adaptador, de modo que cambiar o ampliar la fuente no afecta al dominio.
+- <strong>Base de datos normalizada:</strong> la data de campo se almacena con esquemas normalizados y consultas optimizadas, lo que da consistencia y una base confiable para análisis posteriores.
+- <strong>CI/CD:</strong> las pruebas y el despliegue se ejecutan de forma automática en cada cambio.
 
 ## Resultados
 
-La operación en campo quedó registrada en una base de datos consistente, que además alimenta los dashboards de análisis.
+- La operación en campo quedó registrada en una base de datos consistente.
+- Esa misma base alimenta los dashboards de eficiencia y costos (ver el proyecto de Power BI).
+- Pruebas y despliegues automatizados en lugar de manuales.
+
+## Stack
+
+NestJS, MySQL, Redis, arquitectura hexagonal, GitHub Actions (CI/CD).
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+A system to track field work during telecom tower installation: projects, progress and operational data in one place. Built during my internship as a Fullstack Developer at NACEL (2025 - 2026).
+
+## My role
+
+Fullstack Developer. I built the complete project manager (frontend and REST API), the integration with the external tracking source, and the test and deployment automation.
+
+## What I built
+
+- A project manager for tower installation with <strong>frontend and REST API</strong> under a <strong>hexagonal architecture</strong>, with a <strong>NestJS</strong> backend.
+- Integration with an <strong>external field tracking API</strong>, whose data is stored in a <strong>normalized MySQL database</strong>.
+- <strong>Test automation and continuous deployment (CI/CD)</strong> with GitHub Actions.
+
+## Architecture and technical decisions
+
+- <strong>Hexagonal architecture:</strong> business logic is isolated from frameworks, the database and external services through ports and adapters. This separates responsibilities and eases testing, since the domain can be tested without spinning up infrastructure.
+- <strong>Integration as an adapter:</strong> the external tracking API is consumed from an adapter, so changing or extending the source does not affect the domain.
+- <strong>Normalized database:</strong> field data is stored with normalized schemas and optimized queries, giving consistency and a reliable base for later analysis.
+- <strong>CI/CD:</strong> tests and deployment run automatically on every change.
+
+## Key achievements
+
+- Field operations are recorded in a consistent database.
+- That same database feeds the efficiency and cost dashboards (see the Power BI project).
+- Automated tests and deployments instead of manual ones.
+
+## Stack
+
+NestJS, MySQL, Redis, hexagonal architecture, GitHub Actions (CI/CD).
+
+</div>

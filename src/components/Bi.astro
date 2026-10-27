@@ -1,0 +1,25 @@
+---
+// Bilingual text: renders sibling elements data-lang="es" / "en" (CSS hides the inactive one).
+// `html` = true renders the strings as trusted HTML. Missing `en` falls back to `es`.
+interface Props {
+  es: string;
+  en?: string;
+  html?: boolean;
+  as?: string;
+  class?: string;
+}
+const { es, en, html = false, as: Tag = "span", class: className } = Astro.props;
+const english = en ?? es;
+---
+
+{html ? (
+  <Fragment>
+    <Tag data-lang="es" class={className} set:html={es} />
+    <Tag data-lang="en" class={className} set:html={english} />
+  </Fragment>
+) : (
+  <Fragment>
+    <Tag data-lang="es" class={className}>{es}</Tag>
+    <Tag data-lang="en" class={className}>{english}</Tag>
+  </Fragment>
+)}

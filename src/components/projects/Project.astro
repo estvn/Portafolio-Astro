@@ -1,28 +1,79 @@
 ---
+import Bi from '../Bi.astro';
 import ProjectCard from './ProjectCard.astro';
 import type { IProject } from '../../interfaces/Interface';
 
+// Astro.glob returns files sorted by path, i.e. by the NNN_ filename prefix
 const projects: IProject[] = (await Astro.glob('../../pages/projects/content/*.mdx')).map(project => project.frontmatter) as IProject[];
 
-const blocks = [
-    { title: 'Proyectos', items: projects.filter((project) => project.category === 'work') },
-    { title: 'Proyectos académicos y personales', items: projects.filter((project) => project.category === 'personal') },
-];
+const VISIBLE_WORK = 4;
+const work = projects.filter((project) => project.category === 'work');
+const personal = projects.filter((project) => project.category === 'personal');
 ---
 
 <section id="proyectos" class="section-spacing">
     <div class="container mx-auto px-2 sm:px-6">
-        {blocks.map((block) => (
-        <div class="mb-16 last:mb-0">
+        <!-- Work projects: first 4 visible, the rest hidden (but in the DOM) until "show more" -->
+        <div class="mb-16">
             <div class="text-center mb-16" data-reveal="up">
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient">{block.title}</h2>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient"><Bi es="Proyectos" en="Projects" /></h2>
             </div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {block.items.map((project, index) => (
-                    <div data-reveal="up" data-reveal-delay={(index % 3) * 100}><ProjectCard {...project} /></div>
+            <div id="work-projects" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {work.map((project, index) => (
+                    <div data-extra={index >= VISIBLE_WORK ? '' : undefined} hidden={index >= VISIBLE_WORK}>
+                        <div data-reveal="up" data-reveal-delay={(index % 3) * 100}><ProjectCard {...project} /></div>
+                    </div>
                 ))}
             </div>
+            {work.length > VISIBLE_WORK && (
+            <div class="text-center mt-10">
+                <button type="button" data-show-more aria-controls="work-projects" aria-expanded="false"
+                    class="btn-outline inline-flex items-center gap-2 min-h-11 px-6 rounded-full font-semibold transition-all duration-300">
+                    <span data-label="more"><i class="fas fa-chevron-down mr-2" aria-hidden="true"></i><Bi es="Mostrar más proyectos" en="Show more projects" /></span>
+                    <span data-label="less" hidden><i class="fas fa-chevron-up mr-2" aria-hidden="true"></i><Bi es="Mostrar menos" en="Show less" /></span>
+                </button>
+            </div>
+            )}
         </div>
-        ))}
+
+        <!-- Personal projects: carousel (one slide at a time, autoplay handled by carousel.js) -->
+        <div>
+            <div class="text-center mb-16" data-reveal="up">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient">
+                    <Bi es="Proyectos académicos y personales" en="Academic & personal projects" />
+                </h2>
+            </div>
+            <div data-carousel data-reveal="up" role="region" aria-roledescription="carousel"
+                aria-label="Proyectos académicos y personales / Academic and personal projects"
+                class="relative max-w-xl md:max-w-5xl mx-auto md:px-14">
+                <div data-carousel-track class="carousel-track" tabindex="0" aria-live="off">
+                    {personal.map((project, index) => (
+                        <div data-carousel-slide class="carousel-slide" role="group" aria-roledescription="slide"
+                            aria-label={`${index + 1} / ${personal.length}`}>
+                            <ProjectCard {...project} horizontal />
+                        </div>
+                    ))}
+                </div>
+                {personal.length > 1 && (
+                <div class="carousel-controls">
+                    <button type="button" data-carousel-prev class="carousel-btn carousel-btn-prev">
+                        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                        <span class="sr-only"><Bi es="Proyecto anterior" en="Previous project" /></span>
+                    </button>
+                    <div class="carousel-dots">
+                        {personal.map((_, index) => (
+                            <button type="button" data-carousel-dot class="carousel-dot" aria-current={index === 0 ? 'true' : undefined}>
+                                <span class="sr-only"><Bi es={`Ir al proyecto ${index + 1}`} en={`Go to project ${index + 1}`} /></span>
+                            </button>
+                        ))}
+                    </div>
+                    <button type="button" data-carousel-next class="carousel-btn carousel-btn-next">
+                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                        <span class="sr-only"><Bi es="Proyecto siguiente" en="Next project" /></span>
+                    </button>
+                </div>
+                )}
+            </div>
+        </div>
     </div>
 </section>

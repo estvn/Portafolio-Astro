@@ -58,6 +58,14 @@ links:
 
 Central type definitions: `IProject`, `ITechnology`, `ITypeTechnology`, `IGithub`, `IExperienceInformation`. Import from here when adding typed data.
 
+## i18n, theme and carousel conventions
+
+- **Bilingual (ES default / EN)**: client-side only, no routing. Render text as sibling `<span data-lang="es">`/`<span data-lang="en">` (use `components/Bi.astro`; CSS in `global.css` hides the inactive one). Data files keep Spanish in the base field and English in `*_en` (`title_en`, `description_en`, `bullets_en`...). JS-rendered strings must use the same spans; placeholders use `data-ph-es`/`data-ph-en`.
+- **Language/theme state**: inline script in `Head.astro` sets `<html lang>` and `class="dark"` before paint from `localStorage` (`lang`, `theme`) with `navigator.language` / `prefers-color-scheme` fallback. `assets/js/theme-lang.js` wires the Nav buttons and dispatches `languagechange` / `themechange` on `document`.
+- **Theme**: Tailwind `dark:` is class-based (`@custom-variant` in `global.css`). Use semantic tokens (`text-fg`, `text-muted`, `bg-page`, `bg-chip`, `border-line`, `.neomorphism`, `.glass`, `.btn-solid`) instead of hardcoded `text-white`/`bg-gray-*`. Tokens are CSS vars in `global.css`.
+- **Projects section**: work projects show the first 4, rest are `hidden` until the "show more" button (`show-more.js`); personal projects are a scroll-snap carousel with 3s autoplay (`carousel.js`, paused on hover/focus/hidden tab, off with reduced motion). No card tilt/hover movement.
+- Project MDX bodies wrap each language in `<div data-lang="es">` / `<div data-lang="en">`.
+
 ## Adding content
 
 **New project:** create `src/pages/projects/content/NNN_name.mdx` following the frontmatter schema above — routing is automatic.

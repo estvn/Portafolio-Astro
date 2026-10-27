@@ -1,31 +1,76 @@
 ---
+import Bi from './Bi.astro';
 import { contactInformation } from '../content/contactInformation';
 
 const socials = [
-  { href: contactInformation.linkedin, icon: 'fab fa-linkedin', label: 'LinkedIn de Estiven Mejía', external: true },
-  { href: contactInformation.github, icon: 'fab fa-github', label: 'GitHub de Estiven Mejía', external: true },
-  { href: `mailto:${contactInformation.email}`, icon: 'fas fa-envelope', label: 'Enviar correo a Estiven Mejía', external: false },
+  { href: contactInformation.linkedin, icon: 'fab fa-linkedin', es: 'LinkedIn de Estiven Mejía', en: "Estiven Mejía's LinkedIn", external: true },
+  { href: contactInformation.github, icon: 'fab fa-github', es: 'GitHub de Estiven Mejía', en: "Estiven Mejía's GitHub", external: true },
+  { href: `mailto:${contactInformation.email}`, icon: 'fas fa-envelope', es: 'Enviar correo a Estiven Mejía', en: 'Email Estiven Mejía', external: false },
 ];
 ---
 
 <nav
   class="fixed top-0 inset-x-0 z-20 h-[var(--nav-h)] pt-[env(safe-area-inset-top)]
-         bg-gray-900/80 backdrop-blur-md border-b border-white/10
-         flex items-center justify-between px-4 sm:px-8"
+         bg-nav backdrop-blur-md border-b border-line
+         flex items-center justify-between gap-1 px-2 sm:px-8"
 >
-  <a href="/" class="font-semibold text-white text-lg min-h-11 inline-flex items-center">Estiven Mejía</a>
+  <div class="flex items-center min-w-0">
+    <a href="/" class="font-semibold text-fg text-base sm:text-lg min-h-11 inline-flex items-center px-1 whitespace-nowrap">Estiven Mejía</a>
+    <span class="hidden sm:inline mx-3 h-6 w-px bg-line" aria-hidden="true"></span>
+    <div class="flex items-center ml-1 sm:ml-0">
+      {socials.map((social) => (
+        <a
+          href={social.href}
+          target={social.external ? '_blank' : undefined}
+          rel={social.external ? 'noopener noreferrer' : undefined}
+          class="w-9 sm:w-11 h-11 inline-flex items-center justify-center text-fg hover:opacity-70 text-xl sm:text-2xl transition-opacity duration-300"
+        >
+          <i class={social.icon} aria-hidden="true"></i>
+          <span class="sr-only"><Bi es={social.es} en={social.en} /></span>
+        </a>
+      ))}
+    </div>
+  </div>
 
-  <div class="flex items-center">
-    {socials.map((social) => (
-      <a
-        href={social.href}
-        aria-label={social.label}
-        target={social.external ? '_blank' : undefined}
-        rel={social.external ? 'noopener noreferrer' : undefined}
-        class="w-11 h-11 inline-flex items-center justify-center text-white hover:text-white text-2xl transition-colors duration-300"
-      >
-        <i class={social.icon}></i>
-      </a>
-    ))}
+  <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+    <button type="button" role="switch" data-theme-toggle aria-checked="true" class="switch">
+      <span class="switch-knob" aria-hidden="true"></span>
+      <i class="fas fa-sun switch-opt" aria-hidden="true"></i>
+      <i class="fas fa-moon switch-opt" aria-hidden="true"></i>
+      <span class="sr-only"><Bi es="Modo oscuro" en="Dark mode" /></span>
+    </button>
+    <button type="button" role="switch" data-lang-toggle aria-checked="false" class="switch">
+      <span class="switch-knob" aria-hidden="true"></span>
+      <span class="switch-opt" aria-hidden="true">ES</span>
+      <span class="switch-opt" aria-hidden="true">EN</span>
+      <span class="sr-only"><Bi es="Inglés" en="English" /></span>
+    </button>
   </div>
 </nav>
+
+<style is:global>
+  .switch {
+    position: relative; display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+    width: 3.25rem; height: 1.75rem; border-radius: 9999px; cursor: pointer;
+    background: color-mix(in srgb, var(--color-fg, currentColor) 12%, transparent);
+    border: 1px solid var(--color-line, rgba(128,128,128,.4));
+  }
+  .switch::after { content: ''; position: absolute; inset: -0.5rem -0.25rem; } /* 44px touch target */
+  .switch:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
+  .switch-knob {
+    position: absolute; top: 2px; left: 2px; width: calc(50% - 2px); height: calc(100% - 4px);
+    border-radius: 9999px; background: var(--color-primary-500, #3b82f6);
+    transition: transform .25s ease;
+  }
+  .switch[aria-checked="true"] .switch-knob { transform: translateX(100%); }
+  .switch-opt {
+    position: relative; z-index: 1; text-align: center; font-size: .6875rem; font-weight: 700; line-height: 1;
+    color: var(--color-muted, #94a3b8); transition: color .25s ease;
+  }
+  .switch .switch-opt:nth-of-type(1) { color: #fff; }
+  .switch[aria-checked="true"] .switch-opt:nth-of-type(1) { color: var(--color-muted, #94a3b8); }
+  .switch[aria-checked="true"] .switch-opt:nth-of-type(2) { color: #fff; }
+  .switch:not([aria-checked="true"]) .switch-opt:nth-of-type(2) { color: var(--color-muted, #94a3b8); }
+  @media (min-width: 640px) { .switch { width: 3.75rem; height: 2rem; } }
+  @media (prefers-reduced-motion: reduce) { .switch-knob, .switch-opt { transition: none; } }
+</style>

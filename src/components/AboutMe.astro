@@ -1,59 +1,47 @@
 ---
+import Bi from "./Bi.astro";
 import NeuralComputer from "./NeuralComputer.astro";
+
+const p1 = {
+    es: `Ingeniero en sistemas dedicado al <strong class="text-gradient">análisis, diseño, desarrollo y despliegue de sistemas informáticos expertos.</strong> Con experiencia en el campo de las bases de datos relacionales, desarrollo en Back-end y Front-end con el uso de distintos lenguajes, diagramación, arquitecturas y diferentes metodologías de desarrollo para lograr <strong class="text-gradient">software de calidad acorde a las necesidades de los clientes.</strong>`,
+    en: `Systems engineer dedicated to the <strong class="text-gradient">analysis, design, development and deployment of expert computer systems.</strong> Experienced in relational databases, back-end and front-end development with several languages, diagramming, architectures and different development methodologies to deliver <strong class="text-gradient">quality software that meets client needs.</strong>`,
+};
+const p2 = {
+    es: `Me apasionan los <strong class="text-gradient">datos</strong>: tengo experiencia con <strong class="text-gradient">bases de datos analíticas, procesos ETL y creación de dashboards</strong> para transformar información dispersa en decisiones claras.`,
+    en: `I'm passionate about <strong class="text-gradient">data</strong>: I have experience with <strong class="text-gradient">analytical databases, ETL processes and building dashboards</strong> to turn scattered information into clear decisions.`,
+};
 ---
 
 <section id="about-me" class="section-spacing">
     <div class="container mx-auto px-2 sm:px-6">
         <div class="text-center mb-16" data-reveal="up">
-            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient">Sobre mí</h2>
-            <p class="text-xl text-white max-w-2xl mx-auto">
-                Conoce más sobre mi trayectoria profesional y habilidades técnicas
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient"><Bi es="Sobre mí" en="About me" /></h2>
+            <p class="text-xl text-fg max-w-2xl mx-auto">
+                <Bi es="Conoce más sobre mi trayectoria profesional y habilidades técnicas" en="Learn more about my professional background and technical skills" />
             </p>
         </div>
-        
+
         <div class="grid md:grid-cols-[14rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)] gap-12 items-stretch">
-            <div data-reveal="left" data-reveal-delay="200" class="neomorphism dark:neomorphism-dark rounded-2xl p-6 flex items-center justify-center w-48 md:w-auto mx-auto md:mx-1">
+            <div data-reveal="left" data-reveal-delay="200" class="neomorphism rounded-2xl p-6 flex items-center justify-center w-48 md:w-auto mx-auto md:mx-1">
                 <NeuralComputer />
             </div>
 
-            <div data-reveal="scale" data-reveal-delay="100" class=" text-xl neomorphism dark:neomorphism-dark p-8 rounded-2xl h-full mx-1">
-                <p class="text-white leading-relaxed mb-4">
-                    Ingeniero en sistemas dedicado al <strong class="text-gradient">análisis, diseño, desarrollo y despliegue
-                    de sistemas informáticos expertos.</strong> Con experiencia en el campo de las bases
-                    de datos relacionales, desarrollo en
-                    Back-end y Front-end con el uso de
-                    distintos lenguajes,
-                    diagramación, arquitecturas y diferentes
-                    metodologías de desarrollo para lograr
-                    <strong class="text-gradient">software de calidad acorde a las
-                    necesidades de los clientes.</strong>
-                </p>
+            <div data-reveal="scale" data-reveal-delay="100" class="text-xl neomorphism p-8 rounded-2xl h-full mx-1">
+                <p class="text-fg leading-relaxed mb-4"><Bi html es={p1.es} en={p1.en} /></p>
 
-                <p class="text-white leading-relaxed mb-4">
-                    Me apasionan los <strong class="text-gradient">datos</strong>: tengo experiencia con
-                    <strong class="text-gradient">bases de datos analíticas, procesos ETL y creación de dashboards</strong>
-                    para transformar información dispersa en decisiones claras.
-                </p>
-                
-                <p class="text-white leading-relaxed mb-4">
-                    <a 
+                <p class="text-fg leading-relaxed mb-4"><Bi html es={p2.es} en={p2.en} /></p>
+
+                <p class="leading-relaxed mb-4">
+                    <a
                         href="/assets/archives/CV_Estiven_Mejia_Fullstack.pdf"
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        title="Ver certificado"
-                        class="
-                        bg-clip-text  
-                        hover:drop-shadow-[0_0_5px_#667eea]         
-                        transition-all duration-500 ease-in-out
-                        "
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-accent underline underline-offset-4 hover:opacity-80 transition-opacity duration-300"
                     >
-                        <strong>¡Haga click aquí para ver mi curriculum!</strong>   
+                        <strong><Bi es="¡Haga click aquí para ver mi curriculum!" en="Click here to see my résumé!" /></strong>
                     </a>
                 </p>
             </div>
         </div>
-
-
-        
     </div>
 </section>

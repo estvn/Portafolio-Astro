@@ -1,7 +1,9 @@
 ---
 
 title: 'WebApp - Hospital Oncológico'
-description: 'Sistema de agendamiento de citas médicas en producción, con modelado de base de datos y backend MVC.'
+title_en: 'WebApp - Oncology Hospital'
+description: 'Sistema de agendamiento de citas médicas en producción: modelado de base de datos, backend MVC en PHP y reportes en CSV y PDF.'
+description_en: 'Medical appointment scheduling system in production: database modeling, PHP MVC backend and CSV and PDF reports.'
 image: 
     url: '/assets/projects/hospital-oncologico.webp'
     alt: WebApp Hospital Oncológico
@@ -14,13 +16,72 @@ links:
 
 ---
 
-Se ha desarrollado una aplicación web completa para la gestión de citas médicas a los doctores de un hospital oncológico. 
-Se ha utilizando Javascript y Bootstrap para el desarrollo en el FrontEnd, tecnología AJAX para el consumo de endpoints 
-y librerías para la creación de archivos CSV y PDF con información almacenada en la base de datos de la aplicación.
-Y se ha desarrollado una API-REST con PHP vanilla con el patrón de diseño <strong>MVC</strong> y conexión con la base de datos MySQL 
-para el manejo de lógica en la parte del servidor.
+<div data-lang="es">
 
-## Aspectos destacados
+## Resumen
 
-- Modelado de la base de datos y backend con patrón <strong>MVC</strong>.
-- Levantamiento de requerimientos y desarrollo del <strong>sistema de agendamiento de citas médicas, en producción</strong>.
+Aplicación web completa para gestionar las citas médicas con los doctores de un hospital oncológico. Está en producción y se puede ver en [oncometro.com](https://oncometro.com). Proyecto realizado como consultor para Zsystems.
+
+## Mi rol
+
+Analista y Desarrollador Fullstack. Levanté los requerimientos, modelé la base de datos y programé el backend.
+
+## Qué construí
+
+- <strong>Modelado de la base de datos</strong> y backend con patrón <strong>MVC</strong>.
+- <strong>Sistema de agendamiento de citas médicas, en producción</strong>.
+- API REST en PHP vanilla con conexión a MySQL para la lógica del servidor.
+- Frontend con JavaScript y Bootstrap, consumiendo los endpoints mediante AJAX.
+- Generación de archivos CSV y PDF con información almacenada en la base de datos.
+
+## Arquitectura y decisiones técnicas
+
+- <strong>PHP vanilla con MVC:</strong> una estructura ligera y sin dependencias de framework, con responsabilidades claras entre modelo, vista y controlador.
+- <strong>AJAX sobre endpoints REST:</strong> el frontend consume la API sin recargar la página, lo que da una experiencia ágil para agendar y consultar citas.
+- <strong>Modelado previo de datos:</strong> definir bien las entidades antes de programar sostiene la lógica de agendamiento.
+
+## Resultados
+
+- Un sistema de agendamiento de citas en producción para un hospital oncológico.
+- Información de la aplicación exportable a CSV y PDF.
+
+## Stack
+
+JavaScript, AJAX, Bootstrap, PHP (API REST, MVC), MySQL, Git/GitHub.
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+A complete web application to manage doctor appointments at an oncology hospital. It is in production and can be seen at [oncometro.com](https://oncometro.com). Delivered as a consultant for Zsystems.
+
+## My role
+
+Analyst and Fullstack Developer. I gathered the requirements, modeled the database and wrote the backend.
+
+## What I built
+
+- <strong>Database modeling</strong> and a backend with the <strong>MVC</strong> pattern.
+- A <strong>medical appointment scheduling system, in production</strong>.
+- A REST API in vanilla PHP connected to MySQL for the server-side logic.
+- Frontend with JavaScript and Bootstrap, consuming the endpoints through AJAX.
+- CSV and PDF file generation from data stored in the application database.
+
+## Architecture and technical decisions
+
+- <strong>Vanilla PHP with MVC:</strong> a lightweight structure with no framework dependency and clear responsibilities between model, view and controller.
+- <strong>AJAX over REST endpoints:</strong> the frontend consumes the API without reloading the page, giving a fluid experience for booking and checking appointments.
+- <strong>Upfront data modeling:</strong> defining the entities well before coding supports the scheduling logic.
+
+## Key achievements
+
+- An appointment scheduling system in production for an oncology hospital.
+- Application data exportable to CSV and PDF.
+
+## Stack
+
+JavaScript, AJAX, Bootstrap, PHP (REST API, MVC), MySQL, Git/GitHub.
+
+</div>

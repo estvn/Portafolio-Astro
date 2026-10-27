@@ -1,7 +1,9 @@
 ---
 
 title: ' WebApp - Taller Industrial'
-description: 'Sistema de inventario con base de datos normalizada, control de existencias con trazabilidad, reportes y alertas de stock mínimo.'
+title_en: 'WebApp - Industrial Workshop'
+description: 'Sistema de inventario con base de datos normalizada, control de existencias con trazabilidad por producto, reportes, catálogo y alertas de stock mínimo.'
+description_en: 'Inventory system with a normalized database, stock control with per-product traceability, reports, catalog and minimum stock alerts.'
 image: 
     url: '/assets/projects/sistema-inventario-taller.webp'
     alt: WebApp Gestión Inventario
@@ -14,15 +16,74 @@ links:
 
 ---
 
-Se ha desarrollado una aplicación web completa para la gestión del inventario de un taller Industrial. La aplicación contiene los diferentes
-roles (administrador, técnico, cliente) y sus respectivas autorizaciones y autenticaciones para garantizar la seguridad en la visualización 
-de datos entre los diferentes roles. Se ha usado Javascript, Bootstrap y jQuery en el FrontEnd, se ha creado una API-REST con PHP y conexión 
-con el motor de base de datos MySQL para la lógica en la parte del servidor.
+<div data-lang="es">
 
-## Aspectos destacados
+## Resumen
+
+Aplicación web completa para gestionar el inventario de un taller industrial: productos, proveedores y movimientos, con control de acceso por roles (administrador, técnico, cliente). Proyecto realizado como consultor para Zsystems.
+
+## Mi rol
+
+Analista y Desarrollador Fullstack. Levanté los requerimientos con el cliente, modelé la base de datos y desarrollé el backend y el frontend.
+
+## Qué construí
 
 - <strong>Base de datos normalizada</strong> que garantiza integridad y consistencia de la información de productos, proveedores y movimientos.
 - <strong>Control de existencias</strong> con registro de entradas y salidas, y trazabilidad del historial de movimientos por producto.
 - <strong>Catálogo de productos</strong> y <strong>alertas de stock mínimo</strong> para anticipar el reabastecimiento.
 - <strong>Reportes</strong> de inventario y de movimientos para apoyar el control del taller.
-- Levantamiento de requerimientos con el cliente y backend con patrón <strong>MVC</strong>.
+- Autenticación y autorización por roles para restringir la visualización de datos entre administrador, técnico y cliente.
+
+## Arquitectura y decisiones técnicas
+
+- <strong>Patrón MVC</strong> en el backend, con una API REST en PHP y MySQL como motor de base de datos.
+- <strong>Frontend</strong> con JavaScript, Bootstrap y jQuery.
+- <strong>Normalización:</strong> separar productos, proveedores y movimientos evita duplicar datos y mantiene coherente el stock. El historial de entradas y salidas permite reconstruir cómo llegó cada producto a su existencia actual.
+- <strong>Alertas de stock mínimo:</strong> convierten el inventario en una herramienta proactiva de reabastecimiento.
+
+## Resultados
+
+- Control del inventario con trazabilidad completa de movimientos por producto.
+- Reportes disponibles para el control del taller y reabastecimiento anticipado mediante alertas.
+
+## Stack
+
+JavaScript, jQuery, Bootstrap, PHP (API REST, MVC), MySQL, Git/GitHub.
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+A complete web application to manage the inventory of an industrial workshop: products, suppliers and movements, with role-based access (administrator, technician, customer). Delivered as a consultant for Zsystems.
+
+## My role
+
+Analyst and Fullstack Developer. I gathered requirements with the client, modeled the database and built the backend and frontend.
+
+## What I built
+
+- A <strong>normalized database</strong> that guarantees integrity and consistency of product, supplier and movement data.
+- <strong>Stock control</strong> with entry and exit records, and traceability of the movement history per product.
+- A <strong>product catalog</strong> and <strong>minimum stock alerts</strong> to anticipate restocking.
+- Inventory and movement <strong>reports</strong> to support workshop control.
+- Role-based authentication and authorization to restrict data visibility between administrator, technician and customer.
+
+## Architecture and technical decisions
+
+- <strong>MVC pattern</strong> on the backend, with a REST API in PHP and MySQL as the database engine.
+- <strong>Frontend</strong> with JavaScript, Bootstrap and jQuery.
+- <strong>Normalization:</strong> separating products, suppliers and movements avoids duplicated data and keeps stock coherent. The entry and exit history makes it possible to reconstruct how each product reached its current stock.
+- <strong>Minimum stock alerts:</strong> turn the inventory into a proactive restocking tool.
+
+## Key achievements
+
+- Inventory control with full movement traceability per product.
+- Reports available for workshop control and anticipated restocking through alerts.
+
+## Stack
+
+JavaScript, jQuery, Bootstrap, PHP (REST API, MVC), MySQL, Git/GitHub.
+
+</div>

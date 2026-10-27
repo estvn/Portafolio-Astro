@@ -1,40 +1,41 @@
 ---
 import "../assets/css/global.css"
 import "../assets/css/styles.css"
+import Bi from "../components/Bi.astro";
 import Footer from "../components/Footer.astro";
 import Head from "../components/Head.astro"
 import Nav from "../components/Nav.astro"
 import type { IGithub} from "../interfaces/Interface";
 
-const { title, description, image, technologies, links } = Astro.props;
+const { title, title_en, technologies, links } = Astro.props;
 ---
 
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth">
-    <Head/>
-    <body class="min-h-dvh flex dark:bg-gray-900 text-white transition-colors duration-300">
+    <Head title={title} titleEn={title_en} />
+    <body class="min-h-dvh flex bg-page text-fg">
     <div id="scroll-progress"></div>
         <Nav/>
             <main class="flex-1 w-full px-4 sm:px-8 pb-8 pt-[calc(var(--nav-h)+0.5rem)] overflow-auto">
-                <article class="p-8 max-w-3xl mx-auto mt-7">
-                <a href="/#projects" class="inline-flex items-center gap-2 min-h-11 px-4 mb-6 rounded-full border border-white/30 font-semibold hover:bg-white/10 transition-colors duration-300">
-                    <i class="fas fa-arrow-left"></i> Volver
+                <article class="p-4 sm:p-8 max-w-3xl mx-auto mt-7">
+                <a href="/#projects" class="inline-flex items-center gap-2 min-h-11 px-4 mb-6 rounded-full border border-line font-semibold hover:bg-fg/10 transition-colors duration-300">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> <Bi es="Volver" en="Back" />
                 </a>
-                <h1 class="text-4xl font-bold mb-4 text-gradient">{title}</h1>
+                <h1 class="text-3xl sm:text-4xl font-bold mb-4 text-gradient"><Bi es={title} en={title_en} /></h1>
                 <div class="flex my-5">
                     {links.live && (
-                        <a href={links.live} class=" p-2 rounded-full hover:bg-white/30 transition-colors duration-300" target="_blank">
-                            Visitar sitio <i class="fas fa-external-link-alt"></i>
+                        <a href={links.live} class="p-2 rounded-full hover:bg-fg/10 transition-colors duration-300 text-accent" target="_blank" rel="noopener noreferrer">
+                            <Bi es="Visitar sitio" en="Visit site" /> <i class="fas fa-external-link-alt" aria-hidden="true"></i>
                         </a>
                     )}
                     {links.github && links.github.length === 1 && (
                     <a
                         href={links.github[0].url}
-                        class="p-2 rounded-full hover:bg-white/30 transition-colors duration-300 inline-flex items-center gap-2"
+                        class="p-2 rounded-full hover:bg-fg/10 transition-colors duration-300 inline-flex items-center gap-2 text-accent"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        {links.github[0].name} <i class="fab fa-github"></i>
+                        {links.github[0].name} <i class="fab fa-github" aria-hidden="true"></i>
                     </a>
                     )}
 
@@ -43,11 +44,11 @@ const { title, description, image, technologies, links } = Astro.props;
                         {links.github.map((repo:IGithub) => (
                         <a
                             href={repo.url}
-                            class="p-2 rounded-full hover:bg-white/30 transition-colors duration-300 inline-flex items-center gap-2"
+                            class="p-2 rounded-full hover:bg-fg/10 transition-colors duration-300 inline-flex items-center gap-2 text-accent"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <i class="fab fa-github"></i> {repo.name}
+                            <i class="fab fa-github" aria-hidden="true"></i> {repo.name}
                         </a>
                         ))}
                     </div>
@@ -58,9 +59,9 @@ const { title, description, image, technologies, links } = Astro.props;
                 </div>
 
                 <hr class="my-5">
-                <h3 class="text-2xl my-5 text-gradient">Tecnologías utilizadas:</h3>
+                <h3 class="text-2xl my-5 text-gradient"><Bi es="Tecnologías utilizadas:" en="Technologies used:" /></h3>
                 <ul class="mt-4 list-disc list-inside">
-                    {technologies.map((tech:string[]) => (
+                    {technologies.map((tech:string) => (
                     <li>{tech}</li>
                     ))}
                 </ul>
@@ -71,10 +72,12 @@ const { title, description, image, technologies, links } = Astro.props;
         </main>
         <script src="../assets/js/main.js"></script>
     <script>
+      import { initThemeLang } from "../assets/js/theme-lang.js";
       import { initEtlBackground } from "../assets/js/etl-background.js";
       import { initReveal } from "../assets/js/reveal.js";
       import { initScrollProgress, initTimelines, initCounters } from "../assets/js/scroll-effects.js";
 
+      initThemeLang();
       initEtlBackground({ particlesOnly: true });
       initReveal();
       initScrollProgress();
@@ -83,6 +86,3 @@ const { title, description, image, technologies, links } = Astro.props;
     </script>
     </body>
 </html>
-
-
->

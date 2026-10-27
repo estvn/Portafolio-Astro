@@ -1,42 +1,47 @@
 ---
-const { title, description, image, technologies, links, url, category } = Astro.props;
+import Bi from '../Bi.astro';
+const { title, title_en, description, description_en, image, technologies, links, url, category, horizontal = false } = Astro.props;
+const github = Array.isArray(links?.github) ? links.github[0] : undefined;
 ---
 
-<div class="project-card hover-lift glass dark:glass-dark rounded-2xl overflow-hidden project-item" data-category="backend">
-    <a href={`/projects/${url}`}>
-        <div class="relative">
-            <img src={image?.url || '/placeholder.svg?height=250&width=400'} alt={image?.alt} class="w-full h-48 object-cover" />
-
-            <div class="flex space-x-2 mt-5 mx-4">
-                {links.live && (
-                <a href={links.live} class="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors duration-300" target="_blank">
-                    <i class="fas fa-external-link-alt"></i>
-                </a>
-                )}
-                {links.github && (
-                <a href={links.github[0].url} class="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors duration-300" target="_blank">
-                    <i class="fab fa-github"></i>
-                </a>
-                )}
-            </div>
-
-        </div>
+<div class:list={["project-card hover-lift glass rounded-2xl overflow-hidden project-item", horizontal && "md:flex"]} data-category="backend">
+    <a href={`/projects/${url}`} tabindex="-1" aria-hidden="true" class:list={[horizontal && "md:block md:w-5/12 md:shrink-0"]}>
+        <img src={image?.url || '/placeholder.svg?height=250&width=400'} alt="" class:list={["w-full h-48 object-cover", horizontal && "md:h-full md:min-h-80"]} loading="lazy" />
     </a>
+    <div class:list={[horizontal && "md:flex-1 md:flex md:flex-col md:justify-center"]}>
+
+    {(links?.live || github) && (
+    <div class="flex space-x-2 mt-5 mx-4">
+        {links.live && (
+        <a href={links.live} class="bg-fg/10 p-2 w-10 h-10 inline-flex items-center justify-center rounded-full hover:bg-fg/20 transition-colors duration-300" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+            <span class="sr-only"><Bi es="Visitar sitio" en="Visit site" /></span>
+        </a>
+        )}
+        {github && (
+        <a href={github.url} class="bg-fg/10 p-2 w-10 h-10 inline-flex items-center justify-center rounded-full hover:bg-fg/20 transition-colors duration-300" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-github" aria-hidden="true"></i>
+            <span class="sr-only"><Bi es="Ver repositorio en GitHub" en="View repository on GitHub" /></span>
+        </a>
+        )}
+    </div>
+    )}
 
     <div class="p-6">
-        <h3 class="text-xl font-bold mb-2">{title}</h3>
-        <p class="text-white mb-4">{description}</p>
+        <h3 class="text-xl font-bold mb-2">
+            <a href={`/projects/${url}`} class="hover:underline"><Bi es={title} en={title_en} /></a>
+        </h3>
+        <p class="text-muted mb-4"><Bi es={description} en={description_en} /></p>
         <div class="flex flex-wrap gap-2">
             {technologies.filter((tech: string) => tech.toLowerCase() !== 'jquery').map((tech: string) => (
-            <span class="bg-blue-100 dark:bg-blue-900 text-white px-3 py-1 rounded-full text-sm">
-                {tech}  
+            <span class="bg-chip text-chip-fg px-3 py-1 rounded-full text-sm">
+                {tech}
             </span>
             ))}
         </div>
-        {category === 'work' && (
-        <a href={`/projects/${url}`} class="inline-block mt-5 bg-white text-gray-900 px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors duration-300">
-            Ver más detalles
+        <a href={`/projects/${url}`} class:list={["btn-solid inline-block mt-5 px-5 py-2 rounded-full font-semibold transition-opacity duration-300", horizontal && "md:self-start"]}>
+            <Bi es="Ver más detalles" en="View details" />
         </a>
-        )}
+    </div>
     </div>
 </div>

@@ -1,7 +1,9 @@
 ---
 
 title: 'WebApp - Iglesia Pentecostal'
-description: 'Sistema web de contabilidad con base de datos multitenant, usado por una red de más de 140 instituciones.'
+title_en: 'WebApp - Pentecostal Church'
+description: 'Sistema web de contabilidad con base de datos multitenant que separa la data de cada institución, usado por una red de más de 140 instituciones.'
+description_en: 'Web accounting system with a multitenant database that logically separates each institution''s data, used by a network of 140+ institutions.'
 image: 
     url: '/assets/projects/sistema-iglesia.webp'
     alt: WebApp Iglesia 
@@ -14,13 +16,70 @@ links:
 
 ---
 
-Se ha desarrollado una aplicación web completa para gestionar la contabilidad de una cadena de iglesias a nivel nacional.
-Se ha utilizado Javascript, Bootstrap, jQuery y varias librerías generadoras de archivos CSV y PDF para el desarrollo 
-del FrontEnd de la aplicación. Y la creación de una API-REST con PHP, 
-el patrón de diseño MVC y conexión con el gestor de base de datos MySQL para el manejo de la lógica en el servidor.
+<div data-lang="es">
 
-## Aspectos destacados
+## Resumen
 
-- Diseño de una <strong>base de datos multitenant</strong> que separa lógicamente la data de cada institución.
-- Sistema web de contabilidad <strong>usado por una red de más de 140 instituciones</strong>.
-- Levantamiento de requerimientos y backend con patrón <strong>MVC</strong>.
+Aplicación web completa para gestionar la contabilidad de una cadena de iglesias a nivel nacional. Cada institución necesita llevar su propia contabilidad, por lo que el sistema debe servir a toda la red sin mezclar datos. Proyecto realizado como consultor para Zsystems.
+
+## Mi rol
+
+Analista y Desarrollador Fullstack. Levanté los requerimientos, diseñé la base de datos y desarrollé el backend con patrón MVC y el frontend.
+
+## Qué construí
+
+- Una <strong>base de datos multitenant</strong> que separa lógicamente la data de cada institución.
+- Un <strong>sistema web de contabilidad usado por una red de más de 140 instituciones</strong>.
+- Backend como API REST en PHP con patrón <strong>MVC</strong> y MySQL.
+- Frontend con JavaScript, Bootstrap y jQuery, con librerías para generar archivos CSV y PDF.
+
+## Arquitectura y decisiones técnicas
+
+- <strong>Multitenencia lógica:</strong> una sola aplicación y base de datos atienden a todas las instituciones, separando sus datos de forma lógica. Esto simplifica el despliegue y el mantenimiento frente a mantener una instalación por institución.
+- <strong>MVC:</strong> separa modelos, vistas y controladores, lo que facilita mantener y extender un sistema de uso continuo.
+- <strong>Exportación a CSV y PDF:</strong> pensada para que cada institución pueda sacar sus reportes contables.
+
+## Resultados
+
+- Un sistema contable en uso por más de 140 instituciones.
+- Datos de cada institución separados lógicamente dentro de una misma plataforma.
+
+## Stack
+
+JavaScript, jQuery, Bootstrap, PHP (API REST, MVC), MySQL.
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+A complete web application to manage the accounting of a nationwide chain of churches. Each institution keeps its own books, so the system must serve the whole network without mixing data. Delivered as a consultant for Zsystems.
+
+## My role
+
+Analyst and Fullstack Developer. I gathered the requirements, designed the database and built the backend with the MVC pattern and the frontend.
+
+## What I built
+
+- A <strong>multitenant database</strong> that logically separates each institution's data.
+- A <strong>web accounting system used by a network of more than 140 institutions</strong>.
+- Backend as a REST API in PHP with the <strong>MVC</strong> pattern and MySQL.
+- Frontend with JavaScript, Bootstrap and jQuery, with libraries to generate CSV and PDF files.
+
+## Architecture and technical decisions
+
+- <strong>Logical multitenancy:</strong> a single application and database serve all institutions, separating their data logically. This simplifies deployment and maintenance compared to running one installation per institution.
+- <strong>MVC:</strong> separates models, views and controllers, making a continuously used system easier to maintain and extend.
+- <strong>CSV and PDF export:</strong> designed so each institution can produce its own accounting reports.
+
+## Key achievements
+
+- An accounting system in use by more than 140 institutions.
+- Each institution's data logically separated within a single platform.
+
+## Stack
+
+JavaScript, jQuery, Bootstrap, PHP (REST API, MVC), MySQL.
+
+</div>

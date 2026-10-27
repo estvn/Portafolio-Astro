@@ -5,13 +5,13 @@ import Head from "../components/Head.astro"
 import Nav from "../components/Nav.astro"
 import Footer from "../components/Footer.astro"
 
-const { title } = Astro.props;
+const { title, titleEn } = Astro.props;
 ---
 
 <!DOCTYPE html>
 <html lang="es">
-  <Head title={title}/>
-  <body class="min-h-dvh flex bg-gray-50 dark:bg-gray-900 text-white transition-colors duration-300">
+  <Head title={title} titleEn={titleEn}/>
+  <body class="min-h-dvh flex bg-page text-fg">
     <div id="scroll-progress"></div>
     <Nav/>
     <main class="flex-1 w-full px-4 sm:px-8 pb-8 pt-[calc(var(--nav-h)+0.5rem)]">
@@ -23,15 +23,21 @@ const { title } = Astro.props;
 
 <script src="../assets/js/main.js"></script>
     <script>
+      import { initThemeLang } from "../assets/js/theme-lang.js";
       import { initEtlBackground } from "../assets/js/etl-background.js";
       import { initReveal } from "../assets/js/reveal.js";
       import { initScrollProgress, initTimelines, initCounters } from "../assets/js/scroll-effects.js";
+      import { initCarousels } from "../assets/js/carousel.js";
+      import { initShowMore } from "../assets/js/show-more.js";
 
+      initThemeLang();
       initEtlBackground();
       initReveal();
       initScrollProgress();
       initTimelines();
       initCounters();
+      initCarousels();
+      initShowMore();
     </script>
   </body>
 </html>

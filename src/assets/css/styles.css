@@ -48,43 +48,31 @@
 
         /* Efectos Glassmorphism */
         .glass {
-            background: rgba(255, 255, 255, 0.25);
+            background: var(--glass);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .glass-dark {
-            background: rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--fg);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        /* Efectos Neumorphism */
+        /* Efectos Neumorphism (theme-aware surface) */
         .neomorphism {
-            background: #2b374d;
-            box-shadow: 5px 5px 5px #2b374d;
-        }
-
-        /* .neomorphism:hover {
-            background: #2b374d;
-            box-shadow: 15px 15px 15px #313a4b;
-            transition: all 0.3s ease;
-            transform: translateY(-5px);
-        } */
-
-        .neomorphism-dark {
-            background: #2d3748;
-            box-shadow: 20px 20px 60px #1a202c, -20px -20px 60px #4a5568;
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            box-shadow: var(--surface-shadow);
+            color: var(--fg);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         /* Efectos de hover personalizados */
+        /* Cards: no movement on hover, only a border/shadow emphasis */
         .hover-lift {
-            transition: all 0.3s ease;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
         }
-        
+
         .hover-lift:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: var(--accent-solid);
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.18);
         }
 
         /* Gradientes animados */
@@ -102,38 +90,38 @@
 
         /* Efectos de texto */
         .text-gradient {
-            color: #fff;
-            text-shadow: 0 0 6px rgba(255, 255, 255, 0.28), 0 0 14px rgba(102, 126, 234, 0.4), 0 0 28px rgba(102, 126, 234, 0.28);
+            color: var(--heading);
+            text-shadow: var(--glow);
         }
 
         /* Large headings: subtler glow so the stack does not look heavy */
         h1.text-gradient, h2.text-gradient {
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.18), 0 0 22px rgba(102, 126, 234, 0.28);
+            text-shadow: var(--glow-lg);
         }
 
         /* Scroll personalizado */
         ::-webkit-scrollbar {
             width: 8px;
         }
-        
+
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: var(--scroll-track);
         }
         
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: #1d4ed8;
             border-radius: 4px;
         }
 
         /* Efectos de typing */
         .typing-effect {
-            border-right: 2px solid #e2e8f0;
+            border-right: 2px solid var(--line);
             animation: blink 1s infinite;
         }
-        
+
         @keyframes blink {
             0%, 50% { border-color: transparent; }
-            51%, 100% { border-color: #e2e8f0; }
+            51%, 100% { border-color: var(--line); }
         }
 
         /* Timeline styles */
@@ -158,13 +146,12 @@
 
         /* Tech card effects */
         .tech-card {
-            transition: all 0.3s ease;
+            transition: box-shadow 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-        
+
         .tech-card:hover {
-            transform: translateY(-5px) scale(1.02);
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
         
@@ -211,7 +198,7 @@
         }
         
         .profile-image:hover {
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px var(--accent-solid);
         }
 
         /* Espaciado para evitar superposición del header */
@@ -229,6 +216,8 @@
     pointer-events: none;
     opacity: 0.35;
 }
+html:not(.dark) #etl-background { opacity: 0.2; }
+html:not(.dark) #etl-particles { opacity: 0.45; }
 
 /* Data particles: above the ETL canvas, below page content (cards sit over them) */
 #etl-particles {
@@ -252,7 +241,7 @@ main {
     width: 100%;
     height: 3px;
     z-index: 10000;
-    background: #667eea;
+    background: var(--accent-solid);
     transform: scaleX(0);
     transform-origin: left;
     pointer-events: none;
@@ -279,10 +268,9 @@ main {
         scale: 1 var(--timeline, 1);
     }
 
-    /* Project cards: gentle image zoom + lift */
+    /* Project cards: gentle image zoom only (the card itself does not move) */
     .project-card img { transition: transform 0.5s ease; }
     .project-card:hover img { transform: scale(1.06); }
-    .project-card:hover { transform: translateY(-6px); }
 
     /* Tech icons: gentle lift */
     .tech-icon { transition: transform 0.2s ease; }
@@ -294,4 +282,79 @@ main {
     html.js [data-reveal="left"],
     html.js [data-reveal="right"] { transform: translateY(32px); }
     html.js [data-reveal].is-revealed { transform: none; }
+}
+
+/* Personal projects carousel (carousel.js): one slide at a time, native scroll-snap */
+.carousel-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding: 1.5rem 0;
+    margin: -0.5rem 0;
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+.carousel-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: center;
+    padding: 0 0.25rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .carousel-track { scroll-behavior: smooth; }
+}
+.carousel-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    box-shadow: var(--surface-shadow);
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+.carousel-btn:hover { background: var(--inner); }
+.carousel-dot {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.carousel-dot::before {
+    content: '';
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 9999px;
+    background: var(--subtle);
+    opacity: 0.6;
+    transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+.carousel-dot[aria-current="true"]::before {
+    background: var(--accent-solid);
+    opacity: 1;
+    transform: scale(1.35);
+}
+
+/* Carousel controls: arrows float over the vertical middle of the slides (always on screen),
+   dots sit centered below */
+.carousel-controls { display: flex; justify-content: center; margin-top: 0.5rem; }
+.carousel-dots { display: flex; align-items: center; }
+.carousel-btn-prev,
+.carousel-btn-next {
+    position: absolute;
+    z-index: 20;
+    top: 6.1rem; /* mobile: centered on the 12rem image so the text stays readable */
+}
+.carousel-btn-prev { left: 0.25rem; }
+.carousel-btn-next { right: 0.25rem; }
+@media (min-width: 768px) {
+    .carousel-btn-prev,
+    .carousel-btn-next { top: calc((100% - 2.75rem) / 2 - 1.375rem); }
+    .carousel-btn-prev { left: 0; }
+    .carousel-btn-next { right: 0; }
 }

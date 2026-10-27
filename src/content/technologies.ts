@@ -3,6 +3,7 @@ import type { ITypeTechnology } from "../interfaces/Interface";
 export const technologies: ITypeTechnology[] = [
     {
         type: "Backend",
+        type_en: "Backend",
         listTechnologies: [
             { name: "NestJS",         icon: "/assets/icons/nestjs-svgrepo-com.svg" },
             { name: "Node.js",        icon: "/assets/icons/nodejs.svg" },
@@ -17,6 +18,7 @@ export const technologies: ITypeTechnology[] = [
     },
     {
         type: "Bases de Datos",
+        type_en: "Databases",
         listTechnologies: [
             { name: "Oracle PL/SQL",                   icon: "/assets/icons/oracle.svg" },
             { name: "SQL Server Transact-SQL",         icon: "/assets/icons/microsoftsqlserver.svg" },
@@ -27,7 +29,8 @@ export const technologies: ITypeTechnology[] = [
         ]
     },
     {
-        type: "Bussiness Intelligence",
+        type: "Business Intelligence",
+        type_en: "Business Intelligence",
         listTechnologies: [
             { name: "Power BI",                        icon: "/assets/icons/powerbi-svgrepo-com.svg" },
             { name: "Data Warehouse",                  icon: "/assets/icons/data-warehouse.png" },
@@ -36,6 +39,7 @@ export const technologies: ITypeTechnology[] = [
     },
     {
         type: "Infraestructura",
+        type_en: "Infrastructure",
         listTechnologies: [
             //{ name: "Microservicios", icon: "/assets/icons/microservicio.png" },
             //{ name: "Serverless",     icon: "/assets/icons/serverless.svg" },
@@ -46,6 +50,7 @@ export const technologies: ITypeTechnology[] = [
     },
     {
         type: "Frontend",
+        type_en: "Frontend",
         listTechnologies: [
             { name: "Next.js",        icon: "/assets/icons/nextjs.svg" },
             { name: "React",          icon: "/assets/icons/react.svg" },

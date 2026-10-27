@@ -1,7 +1,9 @@
 ---
 
 title: 'Dashboards Power BI - Eficiencia y costos en campo'
-description: 'Dashboards ejecutivos con actualización programada para medir la eficiencia operativa y controlar los costos en campo.'
+title_en: 'Power BI Dashboards - Field Efficiency and Costs'
+description: 'Dashboards ejecutivos con actualización programada: avance por proyecto, productividad por cuadrilla y análisis de costos para priorizar optimizaciones.'
+description_en: 'Executive dashboards with scheduled refresh: progress per project, crew productivity and cost analysis to prioritize optimizations.'
 image: 
     url: '/assets/projects/nacel-powerbi.svg'
     alt: Panel de indicadores con barras y línea de tendencia
@@ -14,16 +16,70 @@ links:
 
 ---
 
-## Contexto
+<div data-lang="es">
 
-Con el sistema de tracking en operación, se necesitaba un seguimiento periódico de la eficiencia del trabajo en campo y de los costos asociados.
+## Resumen
 
-## Qué se construyó
+Con el sistema de tracking en operación, hacía falta un seguimiento periódico de la eficiencia del trabajo en campo y de los costos asociados. Esta capa de inteligencia de negocio convierte los datos operativos en indicadores para la toma de decisiones. Desarrollado durante mi práctica en NACEL (2025 - 2026).
+
+## Mi rol
+
+Fullstack Developer, a cargo del análisis y la construcción de los dashboards: desde la conexión a la base de datos hasta los indicadores que ve la gerencia.
+
+## Qué construí
 
 - <strong>Dashboards ejecutivos en Power BI</strong> con <strong>actualización programada</strong> desde la base de datos transaccional del sistema de tracking.
 - <strong>Indicadores de eficiencia</strong> del trabajo en campo: avance por proyecto y productividad por cuadrilla.
 - <strong>Análisis de costos y gastos por proyecto</strong>, identificando las categorías y etapas donde se concentra el mayor gasto.
 
+## Arquitectura y decisiones técnicas
+
+- <strong>Fuente única de verdad:</strong> los dashboards se alimentan de la misma base de datos MySQL normalizada que usa el sistema de tracking, evitando copias manuales y cifras divergentes.
+- <strong>Actualización programada:</strong> los indicadores se refrescan automáticamente, así el seguimiento periódico no depende de exportar datos a mano.
+- <strong>Indicadores orientados a decisión:</strong> avance, productividad y concentración del gasto responden preguntas concretas de la operación, en lugar de mostrar datos sin contexto.
+- Durante la práctica también trabajé con fuentes de Excel y bases de datos para reportes y seguimiento de indicadores.
+
 ## Resultados
 
-Seguimiento periódico de la operación y una base para priorizar acciones de optimización en las categorías y etapas con mayor gasto.
+- Seguimiento periódico de la operación en campo mediante dashboards ejecutivos.
+- Visibilidad de las categorías y etapas con mayor gasto, como base para priorizar acciones de optimización.
+
+## Stack
+
+Power BI, MySQL (base de datos transaccional del sistema de tracking).
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+With the tracking system in operation, the business needed periodic monitoring of field work efficiency and the associated costs. This business intelligence layer turns operational data into indicators for decision making. Built during my internship at NACEL (2025 - 2026).
+
+## My role
+
+Fullstack Developer, in charge of the analysis and construction of the dashboards: from the database connection to the indicators management sees.
+
+## What I built
+
+- <strong>Executive dashboards in Power BI</strong> with <strong>scheduled refresh</strong> from the tracking system's transactional database.
+- <strong>Efficiency indicators</strong> for field work: progress per project and productivity per crew.
+- <strong>Cost and expense analysis per project</strong>, identifying the categories and stages where spending is concentrated.
+
+## Architecture and technical decisions
+
+- <strong>Single source of truth:</strong> the dashboards read from the same normalized MySQL database used by the tracking system, avoiding manual copies and diverging figures.
+- <strong>Scheduled refresh:</strong> indicators update automatically, so periodic monitoring does not depend on exporting data by hand.
+- <strong>Decision-oriented indicators:</strong> progress, productivity and spending concentration answer concrete operational questions instead of showing context-free data.
+- During the internship I also worked with Excel sources and databases for reporting and indicator tracking.
+
+## Key achievements
+
+- Periodic monitoring of field operations through executive dashboards.
+- Visibility into the categories and stages with the highest spending, as a basis for prioritizing optimization actions.
+
+## Stack
+
+Power BI, MySQL (the tracking system's transactional database).
+
+</div>

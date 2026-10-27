@@ -1,76 +1,70 @@
 ---
-import { educationInformation } from "../content/educationInformation"
+import Bi from "./Bi.astro";
+import { cvUrl, degree, certifications } from "../content/educationInformation";
+
+const cvButton = "btn-solid inline-flex items-center gap-2 min-h-11 px-5 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-105";
 ---
 
 <section id="educacion" class="section-spacing">
     <div class="container mx-auto px-2 sm:px-6">
-        <div class="text-center mb-16" data-reveal="up">
-            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient">Educación</h2>
-            <p class="text-xl text-white max-w-2xl mx-auto">
-                Mi formación académica y certificaciones profesionales
+        <!-- CV action: sticky on md+ so it stays visible while scrolling through the section -->
+        <div class="hidden md:flex sticky top-[calc(var(--nav-h)+0.75rem)] z-20 h-0 justify-end pointer-events-none">
+            <a href={cvUrl} target="_blank" rel="noopener noreferrer" class={`${cvButton} pointer-events-auto h-fit`}>
+                <i class="fas fa-file-pdf" aria-hidden="true"></i><Bi es="Ver CV" en="View CV" />
+            </a>
+        </div>
+
+        <div class="text-center mb-12" data-reveal="up">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient"><Bi es="Educación" en="Education" /></h2>
+            <p class="text-xl text-fg max-w-2xl mx-auto">
+                <Bi es="Mi formación académica y certificaciones profesionales" en="My academic background and professional certifications" />
             </p>
+            <a href={cvUrl} target="_blank" rel="noopener noreferrer" class={`${cvButton} md:hidden mt-6`}>
+                <i class="fas fa-file-pdf" aria-hidden="true"></i><Bi es="Ver CV" en="View CV" />
+            </a>
         </div>
 
-        <div class="max-w-4xl mx-auto">
-            <div class="relative">
-                <div class="timeline-line absolute left-2 md:left-1/2 md:-translate-x-1/2 w-1 h-full bg-primary-500"></div>
-
-                {educationInformation.map((item, index) => (
-                    <div class="relative flex items-center mb-12 pl-8 md:pl-0" data-reveal={index % 2 === 0 ? "left" : "right"}>
-                        {index % 2 === 0 ? (
-                        <>
-                            <div class="w-full md:w-1/2 md:pr-8 md:text-right">
-                            <div class="neomorphism dark:neomorphism-dark p-6 rounded-2xl hover-lift">
-                                <h3 class="text-xl font-bold text-white mb-2">{item.title}</h3>
-                                <h4 class="text-lg font-semibold mb-2">{item.company}</h4>
-                                <p class="text-white mb-3">{item.date}</p>
-                                <p class="text-white">{item.description}</p>
-{item.certification && (
-<a href={item.certification} target="_blank" rel="noopener noreferrer" class="md:hidden inline-flex items-center min-h-11 mt-2 text-white font-semibold underline">
-<i class="fas fa-file-pdf mr-2"></i>Ver certificado
-</a>
-)}
-                            </div>
-                            </div>
-                            <div class="hidden md:block w-1/2 pl-8 text-primary-500 text-4xl">
-                            {item.certification ? (
-                                <a href={item.certification} target="_blank" rel="noopener noreferrer" title="Ver certificado">
-                                <i class="fas fa-file-pdf hover:text-primary-700 transition-colors duration-300"></i>
-                                </a>
-                            ) : (
-                                <i class="fas fa-graduation-cap"></i>
-                            )}
-                            </div>
-                        </>
-                        ) : (
-                        <>
-                            <div class="hidden md:block w-1/2 pr-8 text-right text-primary-500 text-4xl">
-                            {item.certification ? (
-                                <a href={item.certification} target="_blank" rel="noopener noreferrer" title="Ver certificado">
-                                <i class="fas fa-file-pdf hover:text-primary-700 transition-colors duration-300"></i>
-                                </a>
-                            ) : (
-                                <i class="fas fa-graduation-cap"></i>
-                            )}
-                            </div>
-                            <div class="w-full md:w-1/2 md:pl-8">
-                            <div class="neomorphism dark:neomorphism-dark p-6 rounded-2xl hover-lift">
-                                <h3 class="text-xl font-bold text-white mb-2">{item.title}</h3>
-                                <h4 class="text-lg font-semibold mb-2">{item.company}</h4>
-                                <p class="text-white mb-3">{item.date}</p>
-                                <p class="text-white">{item.description}</p>
-{item.certification && (
-<a href={item.certification} target="_blank" rel="noopener noreferrer" class="md:hidden inline-flex items-center min-h-11 mt-2 text-white font-semibold underline">
-<i class="fas fa-file-pdf mr-2"></i>Ver certificado
-</a>
-)}
-                            </div>
-                            </div>
-                        </>
-                        )}
-                    </div>
-                ))}
+        <!-- Degree: standalone, prominent block -->
+        <article class="neomorphism rounded-2xl p-6 sm:p-10 max-w-4xl mx-auto mb-16 border-l-4 border-l-primary-500" data-reveal="scale">
+            <div class="flex flex-col sm:flex-row sm:items-start gap-5">
+                <div class="bg-primary-500 text-white w-14 h-14 shrink-0 rounded-full flex items-center justify-center text-2xl">
+                    <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0">
+                    <h3 class="text-2xl sm:text-3xl font-bold text-fg mb-1">
+                        <Bi es={degree.title} en={degree.title_en} />
+                    </h3>
+                    <p class="text-lg font-semibold text-accent">{degree.institution}</p>
+                    <p class="text-muted mt-1 mb-5">
+                        <Bi es={degree.date} en={degree.date_en} /> &middot; <Bi es={degree.location} en={degree.location_en} />
+                    </p>
+                    <h4 class="font-semibold text-fg mb-1"><Bi es="Habilidades adquiridas" en="Skills acquired" /></h4>
+                    <p class="text-muted leading-relaxed mb-4"><Bi es={degree.skills} en={degree.skills_en} /></p>
+                    <span class="inline-flex items-center gap-2 bg-chip text-chip-fg px-3 py-1 rounded-full text-sm">
+                        <i class="fas fa-language" aria-hidden="true"></i><Bi es={degree.language} en={degree.language_en} />
+                    </span>
+                </div>
             </div>
-        </div>
+        </article>
+
+        <!-- Certifications -->
+        <h3 class="text-2xl sm:text-3xl font-bold text-center mb-8 text-gradient" data-reveal="up">
+            <Bi es="Certificaciones" en="Certifications" />
+        </h3>
+        <ul class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {certifications.map((cert, index) => (
+                <li class="neomorphism rounded-2xl p-6 flex flex-col hover-lift" data-reveal="up" data-reveal-delay={(index % 3) * 100}>
+                    <p class="text-sm font-semibold text-accent mb-2">{cert.issuer}</p>
+                    <h4 class="text-lg font-bold text-fg mb-2"><Bi es={cert.title} en={cert.title_en} /></h4>
+                    <p class="text-muted text-sm mb-4"><Bi es={cert.date} en={cert.date_en} /></p>
+                    {cert.pdf && (
+                        <a href={cert.pdf} target="_blank" rel="noopener noreferrer"
+                            class="mt-auto inline-flex items-center min-h-11 font-semibold text-accent underline">
+                            <i class="fas fa-file-pdf mr-2" aria-hidden="true"></i><Bi es="Ver certificado" en="View certificate" />
+                        </a>
+                    )}
+                </li>
+            ))}
+        </ul>
     </div>
 </section>

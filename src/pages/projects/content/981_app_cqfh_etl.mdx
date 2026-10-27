@@ -1,7 +1,9 @@
 ---
 
 title: 'ETL y API - Colegio de Químicos Farmacéuticos (CQFH)'
-description: 'Procesos ETL con SSIS y Python que cargan más de 100 mil registros desde Excel, objetos de base de datos y API REST.'
+title_en: 'ETL and API - Honduran Pharmaceutical Chemists Association (CQFH)'
+description: 'Procesos ETL con SSIS y Python que cargan más de 100 mil registros desde Excel a SQL Server, con procedimientos almacenados, vistas, funciones y una API REST.'
+description_en: 'ETL pipelines with SSIS and Python that load 100k+ records from Excel into SQL Server, plus stored procedures, views, functions and a REST API.'
 image: 
     url: '/assets/projects/cqfh-etl.svg'
     alt: Flujo ETL de archivos Excel a base de datos
@@ -14,17 +16,68 @@ links:
 
 ---
 
-## Contexto
+<div data-lang="es">
 
-La información del Colegio de Químicos Farmacéuticos de Honduras (CQFH) se encontraba en archivos de Excel. 
-El objetivo fue consolidarla en una base de datos para poder consultarla y exponerla al sistema.
+## Resumen
 
-## Qué se construyó
+La información del Colegio de Químicos Farmacéuticos de Honduras (CQFH) vivía en archivos de Excel, lo que dificultaba consultarla, mantener su calidad y ponerla a disposición de un sistema. El objetivo fue consolidarla en una base de datos relacional y exponerla mediante una API. Proyecto realizado como consultor para Oncorp.
 
-- Procesos <strong>ETL con SSIS y Python</strong> para limpiar, transformar y cargar <strong>más de 100 mil registros</strong> desde Excel a la base de datos.
+## Mi rol
+
+Backend Developer (consultor). Me encargué del pipeline de datos de punta a punta: desde la limpieza de los archivos de origen hasta el diseño de los objetos de base de datos y la API que los expone.
+
+## Qué construí
+
+- Procesos <strong>ETL con SSIS y Python (pandas)</strong> para limpiar, transformar y cargar <strong>más de 100 mil registros</strong> desde Excel a SQL Server.
 - Objetos de base de datos (<strong>procedimientos almacenados, vistas y funciones</strong>) para consolidar y consultar la información cargada.
-- Una <strong>API REST</strong> conectada a la base de datos para exponer la información al sistema.
+- Una <strong>API REST con Laravel</strong> conectada a la base de datos para exponer la información al sistema.
+
+## Arquitectura y decisiones técnicas
+
+- <strong>Dos herramientas complementarias de ETL:</strong> Python con pandas resuelve la limpieza y normalización de datos irregulares típicos de Excel, mientras que SSIS orquesta la carga hacia SQL Server de forma repetible.
+- <strong>Lógica en la base de datos:</strong> la consolidación y las consultas se concentran en procedimientos almacenados, vistas y funciones, de modo que la API consume una interfaz estable en lugar de reglas dispersas.
+- <strong>API como capa de acceso:</strong> el sistema no consulta las tablas directamente; lo hace a través de endpoints REST, lo que desacopla el modelo de datos de sus consumidores.
 
 ## Resultados
 
-La información que antes vivía en hojas de cálculo quedó centralizada y disponible para el sistema a través de la API.
+- Más de 100 mil registros migrados desde hojas de cálculo a una base de datos centralizada.
+- Información disponible para el sistema mediante una API REST, en lugar de archivos sueltos.
+
+## Stack
+
+Laravel, SSIS, Python (pandas), SQL Server, API REST.
+
+</div>
+
+<div data-lang="en">
+
+## Overview
+
+The data of the Honduran Pharmaceutical Chemists Association (CQFH) lived in Excel files, which made it hard to query, keep consistent and make available to a system. The goal was to consolidate it into a relational database and expose it through an API. Delivered as a consultant for Oncorp.
+
+## My role
+
+Backend Developer (consultant). I owned the data pipeline end to end: from cleaning the source files to designing the database objects and the API that exposes them.
+
+## What I built
+
+- <strong>ETL processes with SSIS and Python (pandas)</strong> to clean, transform and load <strong>more than 100k records</strong> from Excel into SQL Server.
+- Database objects (<strong>stored procedures, views and functions</strong>) to consolidate and query the loaded data.
+- A <strong>REST API built with Laravel</strong> connected to the database to expose the information to the system.
+
+## Architecture and technical decisions
+
+- <strong>Two complementary ETL tools:</strong> Python with pandas handles the cleaning and normalization of the irregular data typical of Excel, while SSIS orchestrates a repeatable load into SQL Server.
+- <strong>Logic in the database:</strong> consolidation and querying are concentrated in stored procedures, views and functions, so the API consumes a stable interface instead of scattered rules.
+- <strong>API as the access layer:</strong> the system does not query tables directly; it goes through REST endpoints, which decouples the data model from its consumers.
+
+## Key achievements
+
+- More than 100k records migrated from spreadsheets into a centralized database.
+- Information available to the system through a REST API instead of loose files.
+
+## Stack
+
+Laravel, SSIS, Python (pandas), SQL Server, REST API.
+
+</div>
