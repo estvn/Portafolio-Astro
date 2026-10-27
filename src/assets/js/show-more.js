@@ -10,11 +10,18 @@ export function initShowMore() {
     const more = button.querySelector('[data-label="more"]');
     const less = button.querySelector('[data-label="less"]');
 
+    // lg+ skeleton card (collapsed only) and bar (shown on lg+ only when expanded); inline display beats the class
+    const skeletons = document.querySelectorAll(`[data-show-more-skeleton="${grid.id}"]`);
+    const bars = document.querySelectorAll(`[data-show-more-bar="${grid.id}"]`);
+    document.querySelectorAll(`[data-show-more-proxy="${grid.id}"]`).forEach((proxy) => proxy.addEventListener('click', () => button.click()));
+
     button.addEventListener('click', () => {
       const expand = button.getAttribute('aria-expanded') !== 'true';
       button.setAttribute('aria-expanded', String(expand));
       more.hidden = expand;
       less.hidden = !expand;
+      skeletons.forEach((el) => (el.style.display = expand ? 'none' : ''));
+      bars.forEach((el) => (el.style.display = expand ? 'block' : ''));
 
       extras.forEach((item, i) => {
         item.hidden = !expand;

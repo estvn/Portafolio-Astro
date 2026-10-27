@@ -24,9 +24,38 @@ const personal = projects.filter((project) => project.category === 'personal');
                         <div data-reveal="up" data-reveal-delay={(index % 3) * 100}><ProjectCard {...project} /></div>
                     </div>
                 ))}
+                {work.length > VISIBLE_WORK && (
+                <!-- lg+ only: skeleton card in the next free grid slot; its button proxies to the bar button below (show-more.js) -->
+                <div data-show-more-skeleton="work-projects" class="hidden lg:block">
+                    <div class="glass rounded-2xl overflow-hidden h-full relative" data-reveal="up" data-reveal-delay="100">
+                        <div aria-hidden="true" class="h-full flex flex-col">
+                            <div class="w-full h-48 bg-fg/10"></div>
+                            <div class="p-6 flex-1">
+                                <div class="h-5 w-4/5 rounded bg-fg/10 mb-2"></div>
+                                <div class="h-5 w-3/5 rounded bg-fg/10 mb-5"></div>
+                                <div class="h-3 w-full rounded bg-fg/10 mb-2"></div>
+                                <div class="h-3 w-full rounded bg-fg/10 mb-2"></div>
+                                <div class="h-3 w-2/3 rounded bg-fg/10 mb-5"></div>
+                                <div class="flex gap-2 mb-5">
+                                    <div class="h-6 w-16 rounded-full bg-fg/10"></div>
+                                    <div class="h-6 w-20 rounded-full bg-fg/10"></div>
+                                </div>
+                                <div class="h-10 w-36 rounded-full bg-fg/10"></div>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center p-4">
+                            <button type="button" data-show-more-proxy="work-projects"
+                                class="btn-outline bg-page inline-flex items-center gap-2 min-h-11 px-6 rounded-full font-semibold transition-all duration-300">
+                                <i class="fas fa-chevron-down mr-2" aria-hidden="true"></i><Bi es="Mostrar más proyectos" en="Show more projects" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                )}
             </div>
             {work.length > VISIBLE_WORK && (
-            <div class="text-center mt-10">
+            <!-- mobile/tablet always; on lg+ only once expanded (show less) -->
+            <div data-show-more-bar="work-projects" class="text-center mt-10 lg:hidden">
                 <button type="button" data-show-more aria-controls="work-projects" aria-expanded="false"
                     class="btn-outline inline-flex items-center gap-2 min-h-11 px-6 rounded-full font-semibold transition-all duration-300">
                     <span data-label="more"><i class="fas fa-chevron-down mr-2" aria-hidden="true"></i><Bi es="Mostrar más proyectos" en="Show more projects" /></span>
