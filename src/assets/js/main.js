@@ -2,8 +2,6 @@
 
         // Variables globales
         let currentSection = 'inicio';
-        let mouseX = 0;
-        let mouseY = 0;
         
         // Textos para el efecto de typing
         const typingTexts = [
@@ -20,15 +18,11 @@
         // Inicialización cuando el DOM está listo
         function init() {
             initializeTheme();
-            initializeNavigation();
-            initializeAnimations();
             initializeTypingEffect();
-            initializeSkillBars();
             initializeProjectFilters();
             initializeContactForm();
+            initializeCopyButtons();
             initializeScrollEffects();
-            initializeParticleInteraction();
-            createParticles();
         }
 
         // Maneja tanto carga diferida como inline (Astro defer/module scripts)
@@ -48,92 +42,6 @@
                 const isDark = document.documentElement.classList.contains('dark');
                 localStorage.setItem('theme', isDark ? 'dark' : 'light');
             });
-        }
-
-        // Navegación
-        function initializeNavigation() {
-            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-            const mobileMenu = document.getElementById('mobile-menu');
-
-            if (mobileMenuToggle && mobileMenu) {
-                mobileMenuToggle.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('hidden');
-                });
-
-                const mobileLinks = mobileMenu.querySelectorAll('a');
-                mobileLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        mobileMenu.classList.add('hidden');
-                    });
-                });
-            }
-
-            // Navegación suave con offset corregido
-            const navLinks = document.querySelectorAll('a[href^="#"]');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetId = this.getAttribute('href');
-                    const targetSection = document.querySelector(targetId);
-                    
-                    if (targetSection) {
-                        const headerHeight = 140; // Altura del header fijo aumentada
-                        const offsetTop = targetSection.offsetTop - headerHeight;
-                        window.scrollTo({
-                            top: offsetTop,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
-
-            // Actualizar navegación activa
-            window.addEventListener('scroll', updateActiveNavigation);
-        }
-
-        // Actualizar navegación activa
-        function updateActiveNavigation() {
-            const sections = document.querySelectorAll('section[id]');
-            const navLinks = document.querySelectorAll('.nav-link');
-            const headerHeight = 140;
-            
-            let current = '';
-            
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop - headerHeight - 50;
-                const sectionHeight = section.clientHeight;
-                
-                if (window.pageYOffset >= sectionTop && window.pageYOffset < sectionTop + sectionHeight) {
-                    current = section.getAttribute('id');
-                }
-            });
-            
-            navLinks.forEach(link => {
-                link.classList.remove('nav-active');
-                if (link.getAttribute('href') === '#' + current) {
-                    link.classList.add('nav-active');
-                }
-            });
-        }
-
-        // Animaciones de entrada
-        function initializeAnimations() {
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-            
-            const observer = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate-slide-up');
-                    }
-                });
-            }, observerOptions);
-            
-            // Observar elementos para animaciones
-            const animatedElements = document.querySelectorAll('.hover-lift, .project-card, .timeline-item, .tech-card');
-            animatedElements.forEach(el => observer.observe(el));
         }
 
         // Efecto de typing
@@ -170,28 +78,6 @@
             typeText();
         }
 
-        // Animación de barras de habilidades
-        function initializeSkillBars() {
-            const skillBars = document.querySelectorAll('.skill-progress');
-            
-            const skillObserver = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const progressBar = entry.target;
-                        const width = progressBar.getAttribute('data-width');
-                        
-                        setTimeout(() => {
-                            progressBar.style.width = width + '%';
-                        }, 500);
-                        
-                        skillObserver.unobserve(progressBar);
-                    }
-                });
-            }, { threshold: 0.5 });
-            
-            skillBars.forEach(bar => skillObserver.observe(bar));
-        }
-
         // Filtros de proyectos
         function initializeProjectFilters() {
             const filterButtons = document.querySelectorAll('.filter-btn');
@@ -223,6 +109,45 @@
                     });
                 });
             });
+        }
+
+        // Botones de copiar (email / teléfono)
+        function initializeCopyButtons() {
+            document.querySelectorAll('[data-copy]').forEach(button => {
+                const icon = button.querySelector('i');
+                const status = button.parentElement.querySelector('[data-copy-status]');
+                let timer;
+
+                button.addEventListener('click', async () => {
+                    if (!(await copyText(button.dataset.copy))) return;
+                    icon.className = 'fas fa-check';
+                    status.textContent = '¡Copiado!';
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        icon.className = 'far fa-copy';
+                        status.textContent = '';
+                    }, 1500);
+                });
+            });
+        }
+
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                // fallback for insecure contexts
+                const area = document.createElement('textarea');
+                area.value = text;
+                area.style.position = 'fixed';
+                area.style.opacity = '0';
+                document.body.appendChild(area);
+                area.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch {}
+                area.remove();
+                return ok;
+            }
         }
 
         // Formulario de contacto
@@ -306,76 +231,6 @@
             }
             
             window.addEventListener('scroll', requestTick);
-        }
-
-        // Interacción de partículas con el mouse
-        function initializeParticleInteraction() {
-            const heroSection = document.getElementById('inicio');
-            if (!heroSection) return;
-
-            heroSection.addEventListener('mousemove', function(e) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                
-                const particles = document.querySelectorAll('.particle');
-                particles.forEach(particle => {
-                    const rect = particle.getBoundingClientRect();
-                    const particleX = rect.left + rect.width / 2;
-                    const particleY = rect.top + rect.height / 2;
-                    
-                    const distance = Math.sqrt(
-                        Math.pow(mouseX - particleX, 2) + Math.pow(mouseY - particleY, 2)
-                    );
-                    
-                    if (distance < 100) {
-                        const angle = Math.atan2(particleY - mouseY, particleX - mouseX);
-                        const force = (100 - distance) / 100;
-                        const moveX = Math.cos(angle) * force * 30;
-                        const moveY = Math.sin(angle) * force * 30;
-                        
-                        particle.style.transform = `translate(${moveX}px, ${moveY}px)`;
-                        particle.style.opacity = 0.8 + (force * 0.2);
-                    } else {
-                        particle.style.transform = 'translate(0px, 0px)';
-                        particle.style.opacity = 0.6;
-                    }
-                });
-            });
-            
-            heroSection.addEventListener('mouseleave', function() {
-                const particles = document.querySelectorAll('.particle');
-                particles.forEach(particle => {
-                    particle.style.transform = 'translate(0px, 0px)';
-                    particle.style.opacity = 0.6;
-                });
-            });
-        }
-
-        // Crear partículas animadas
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles-container');
-            if (!particlesContainer) return;
-            const particleCount = 30;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                // Posición aleatoria
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                
-                // Tamaño aleatorio
-                const size = Math.random() * 4 + 1;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                
-                // Duración de animación aleatoria
-                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                particle.style.animationDelay = Math.random() * 2 + 's';
-                
-                particlesContainer.appendChild(particle);
-            }
         }
 
         // Efectos de mouse

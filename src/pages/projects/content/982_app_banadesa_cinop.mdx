@@ -1,0 +1,32 @@
+---
+
+title: 'BANADESA (CINOP) - Transferencias Monetarias Condicionadas'
+description: 'Sistema de gestión de pagos con datos aislados por institución, control de acceso por roles e integración de impresoras y lectores de huella.'
+image: 
+    url: '/assets/projects/banadesa-tenants.svg'
+    alt: Esquemas de datos separados por institución y lector de huella
+technologies: ["NestJS", "PostgreSQL", "Redis", "Linux", "Docker", "VPS", "API REST"]
+url: 'project-10'
+category: 'work'
+links:
+    github: ''
+    live: ''
+
+---
+
+## Contexto
+
+Sistema de gestión de pagos de las transferencias monetarias condicionadas de BANADESA (CINOP), 
+donde los datos de cada institución deben mantenerse separados.
+
+## Qué se construyó
+
+- <strong>Aislamiento de datos por institución</strong> mediante un esquema separado por cada una (enfoque single tenant) y <strong>control de acceso por roles</strong>.
+- Frontend y <strong>API REST</strong> con <strong>NestJS</strong>, conectada a la base de datos <strong>PostgreSQL</strong> y a una caché <strong>Redis</strong> para el sistema de gestión de pagos.
+- <strong>Integración de impresoras y lectores de huella</strong> al sistema web mediante una API local y el SDK del dispositivo.
+- Administración del <strong>despliegue en servidor VPS con contenedores</strong>.
+
+## Resultados
+
+Un sistema web que mantiene separada la data de cada institución, restringe las acciones según el rol del usuario 
+y se conecta con el hardware necesario para el proceso de pagos.

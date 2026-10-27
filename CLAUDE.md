@@ -24,7 +24,6 @@ All static data lives as TypeScript objects — not Astro Content Collections:
 - `technologies.ts` — tech stack grouped by category (`ITypeTechnology[]`)
 - `experienceInformation.ts` — education/work history
 - `contactInformation.ts` — email, phone, social links
-- `pages.ts` — nav page definitions
 
 ### Projects (`src/pages/projects/`)
 
@@ -57,7 +56,7 @@ links:
 
 ### Interfaces (`src/interfaces/Interface.ts`)
 
-Central type definitions: `IPage`, `IProject`, `ITechnology`, `ITypeTechnology`, `IGithub`, `IExperienceInformation`. Import from here when adding typed data.
+Central type definitions: `IProject`, `ITechnology`, `ITypeTechnology`, `IGithub`, `IExperienceInformation`. Import from here when adding typed data.
 
 ## Adding content
 

@@ -47,10 +47,15 @@
 }
 
 .markdown-content a {
-  color: #1e40af;
+  color: #fff;
   text-decoration: underline;
 }
 
 .markdown-content a:hover {
-  color: #2563eb;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
 }

@@ -3,21 +3,22 @@ import TypeTechnology from "./TypeTechnology.astro";
 import type { ITypeTechnology } from "../../interfaces/Interface";
 import { technologies } from "../../content/technologies";
 
-const {bg_style} = Astro.props;
---- 
+---
 
-<section id="tecnologias" class={`section-spacing dark:bg-gray-${bg_style ?? "800"} rounded-2xl mb-10`}>
-    <div class="container mx-auto px-6">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">Mis Habilidades Técnicas</h2>
-            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+<section id="tecnologias" class="section-spacing">
+    <div class="container mx-auto px-2 sm:px-6">
+        <div class="text-center mb-16" data-reveal="up">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient">Mis Habilidades Técnicas</h2>
+            <p class="text-xl text-white max-w-2xl mx-auto">
                 ¡Stack tecnológico y herramientas que domino para ofrecerle soluciones innovadoras!
             </p>
         </div>
-        {
-            technologies.map((tech: ITypeTechnology) => (
-                <TypeTechnology typeTech={tech.type} techList={tech.listTechnologies} />
-            ))
-        }
+        <div class="flex flex-wrap gap-6">
+            {
+                technologies.map((tech: ITypeTechnology, index: number) => (
+                    <TypeTechnology typeTech={tech.type} techList={tech.listTechnologies} delay={(index % 3) * 100} />
+                ))
+            }
+        </div>
     </div>
 </section>

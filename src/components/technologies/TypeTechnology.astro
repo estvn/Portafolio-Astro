@@ -2,42 +2,15 @@
 import Technology from "./Technology.astro";
 import type { ITechnology } from "../../interfaces/Interface";
 
-const { typeTech, techList } = Astro.props;
-
-const technologyLevels = [
-  { label: "Avanzado", min: 70, max: 99 },
-  { label: "Intermedio", min: 40, max: 69 },
-  { label: "Básico", min: 10, max: 39 },
-];
-
-// Filtrar solo los niveles que tienen tecnologías correspondientes
-const nonEmptyLevels = technologyLevels
-  .map((level) => ({
-    ...level,
-    techs: techList.filter((tech: ITechnology) => tech.percentage >= level.min && tech.percentage < level.max),
-  }))
-  .filter((level) => level.techs.length > 0);
+const { typeTech, techList, delay = 0 } = Astro.props;
 ---
-<div class="grid grid-cols-1 gap-8 mb-10">
-  <div class="neomorphism dark:neomorphism-dark p-6 sm:p-8 rounded-2xl">
-    <h3 class="text-2xl font-bold mb-6 text-primary-600 dark:text-primary-400">{typeTech}</h3>
-
-    <!-- Solo se renderizan los niveles que tienen herramientas -->
-    <div class={`grid grid-cols-1 ${nonEmptyLevels.length === 2 ? 'md:grid-cols-2' : nonEmptyLevels.length === 3 ? 'md:grid-cols-3' : ''} gap-6`}>
-      {
-        nonEmptyLevels.map((level) => (
-          <div class="border-l border-r border-dashed border-white/20 p-4 rounded-lg ">
-            <h3 class="text-lg font-semibold mb-4 text-center">{level.label}</h3>
-            <div class="flex flex-wrap justify-center items-center gap-6">
-              {
-                level.techs.map((tech: ITechnology) => (
-                  <Technology name={tech.name} icon={tech.icon} />
-                ))
-              }
-            </div>
-          </div>
-        ))
-      }
-    </div>
+<div data-reveal="up" data-reveal-delay={delay} class="neomorphism dark:neomorphism-dark p-6 sm:p-8 rounded-2xl grow max-w-full">
+  <h3 class="text-2xl font-bold mb-6 text-center text-white">{typeTech}</h3>
+  <div class="flex flex-wrap justify-center items-center gap-6">
+    {
+      techList.map((tech: ITechnology) => (
+        <Technology name={tech.name} icon={tech.icon} />
+      ))
+    }
   </div>
 </div>

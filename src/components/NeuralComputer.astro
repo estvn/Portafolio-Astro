@@ -1,0 +1,54 @@
+---
+// Layer sizes of the network drawn on the monitor: input → hidden → output
+const layers = [
+  { x: 70, ys: [55, 75, 95], color: "#818cf8" },
+  { x: 120, ys: [45, 65, 85, 105], color: "#22d3ee" },
+  { x: 170, ys: [55, 75, 95], color: "#34d399" },
+];
+
+const edges = layers.slice(0, -1).flatMap((from, i) =>
+  from.ys.flatMap((y1) => layers[i + 1].ys.map((y2) => ({ x1: from.x, y1, x2: layers[i + 1].x, y2 })))
+);
+---
+
+<svg viewBox="0 0 240 160" role="img" aria-label="Computadora mostrando una red neuronal" class="neural-computer w-full h-auto">
+  <!-- Monitor -->
+  <rect x="30" y="8" width="180" height="120" rx="10" fill="#111827" stroke="#667eea" stroke-width="3" />
+  <rect x="38" y="16" width="164" height="104" rx="5" fill="#0b1020" />
+  <!-- Stand -->
+  <rect x="112" y="128" width="16" height="14" fill="#667eea" />
+  <rect x="85" y="142" width="70" height="8" rx="4" fill="#667eea" />
+
+  <!-- Network -->
+  <g transform="translate(0 -3)">
+    {edges.map((e) => <line x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2} stroke="#667eea" stroke-opacity="0.35" stroke-width="1" />)}
+    {layers.map((layer, li) => layer.ys.map((y, ni) => (
+      <circle
+        class="neural-node"
+        cx={layer.x}
+        cy={y}
+        r="5"
+        fill={layer.color}
+        style={`animation-delay: ${(li * 0.4 + ni * 0.15).toFixed(2)}s`}
+      />
+    )))}
+  </g>
+</svg>
+
+<style>
+  .neural-node {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .neural-node {
+      animation: neural-pulse 2.4s ease-in-out infinite;
+    }
+  }
+
+  @keyframes neural-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+</style>

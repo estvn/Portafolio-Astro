@@ -1,81 +1,23 @@
 ---
-import { contactInformation } from '../content/contactInformation';
+import NeuralComputer from "./NeuralComputer.astro";
 ---
 
-<section id="index" class="pt-20 pb-50">
-    
-    <div class="container mx-auto px-6 text-center text-white relative z-10">
-        <div class="animate-slide-up">
-
-        <div class="particles overflow-hidden" id="particles-container">
-            <div class="particle w-2 h-2" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
-            <div class="particle w-3 h-3" style="left: 20%; top: 60%; animation-delay: 1s;"></div>
-            <div class="particle w-1 h-1" style="left: 30%; top: 40%; animation-delay: 2s;"></div>
-            <div class="particle w-2 h-2" style="left: 40%; top: 80%; animation-delay: 3s;"></div>
-            <div class="particle w-3 h-3" style="left: 50%; top: 30%; animation-delay: 4s;"></div>
-            <div class="particle w-1 h-1" style="left: 60%; top: 70%; animation-delay: 5s;"></div>
-            <div class="particle w-2 h-2" style="left: 70%; top: 50%; animation-delay: 0.5s;"></div>
-            <div class="particle w-3 h-3" style="left: 85%; top: 25%; animation-delay: 1.5s;"></div>
-            <div class="particle w-1 h-1" style="left: 95%; top: 65%; animation-delay: 2.5s;"></div>
-        </div>
-
-            <div class="mb-8 animate-float">
-                <img src="/assets/img/perfil-photo.jpg" alt="Estiven Mejia"
-                    width="192"
-                    height="192"
-                    class="profile-image w-48 h-48 rounded-full mx-auto border-4 border-white shadow-2xl hover:scale-110 transition-transform duration-300">
-            </div>
-            
-            <h1 class="text-5xl md:text-7xl font-bold mb-4 animate-slide-in-left">
-                Estiven J. <span class="text-gray-300">Mejía</span>
-            </h1>
-            
-            <p class="text-xl my-8 max-w-2xl mx-auto opacity-90 animate-scale-in">
-                Analista y desarrollador de software 
-            </p>
-            
-            <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-                <a href="/projects" class="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                    Ver Proyectos
-                </a>
-                <a href="#contacto" class="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-gray-900 transition-all duration-300 hover:scale-105">
-                    Contactar
-                </a>
-            </div>
-            
-            <div class="flex justify-center space-x-8 mt-12 animate-bounce-slow">
-                
-                <a href={contactInformation.linkedin} class="text-white hover:text-gray-300 transition-colors duration-300 text-3xl hover:scale-125 transform">
-                    <i class="fab fa-linkedin"></i>
-                </a>
-                <a href={contactInformation.github} class="text-white hover:text-gray-300 transition-colors duration-300 text-3xl hover:scale-125 transform">
-                    <i class="fab fa-github"></i>
-                </a>
-                <a href={`mailto:${contactInformation.email}`} class="text-white hover:text-gray-300 transition-colors duration-300 text-3xl hover:scale-125 transform">
-                    <i class="fas fa-envelope"></i>
-                </a>
-            </div>
-
-        </div>
-        <div class="absolute mt-20 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <a href="#about-me" class="fas fa-chevron-down text-white text-2xl"></a>
-        </div>
-    </div>
-            
-</section>
-
-<section id="about-me" class="section-spacing bg-white dark:bg-gray-800 rounded-2xl my-10">
-    <div class="container mx-auto px-6">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">Sobre mí</h2>
-            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+<section id="about-me" class="section-spacing">
+    <div class="container mx-auto px-2 sm:px-6">
+        <div class="text-center mb-16" data-reveal="up">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gradient">Sobre mí</h2>
+            <p class="text-xl text-white max-w-2xl mx-auto">
                 Conoce más sobre mi trayectoria profesional y habilidades técnicas
             </p>
         </div>
         
-        <div class="grid md:grid-cols-1 gap-12 items-center ">
-            <div class=" text-xl neomorphism dark:neomorphism-dark p-8 rounded-2xl h-full mx-1">
-                <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+        <div class="grid md:grid-cols-[14rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)] gap-12 items-stretch">
+            <div data-reveal="left" data-reveal-delay="200" class="neomorphism dark:neomorphism-dark rounded-2xl p-6 flex items-center justify-center w-48 md:w-auto mx-auto md:mx-1">
+                <NeuralComputer />
+            </div>
+
+            <div data-reveal="scale" data-reveal-delay="100" class=" text-xl neomorphism dark:neomorphism-dark p-8 rounded-2xl h-full mx-1">
+                <p class="text-white leading-relaxed mb-4">
                     Ingeniero en sistemas dedicado al <strong class="text-gradient">análisis, diseño, desarrollo y despliegue
                     de sistemas informáticos expertos.</strong> Con experiencia en el campo de las bases
                     de datos relacionales, desarrollo en
@@ -84,12 +26,18 @@ import { contactInformation } from '../content/contactInformation';
                     diagramación, arquitecturas y diferentes
                     metodologías de desarrollo para lograr
                     <strong class="text-gradient">software de calidad acorde a las
-                    necesidades de los clientes.</strong>     
+                    necesidades de los clientes.</strong>
+                </p>
+
+                <p class="text-white leading-relaxed mb-4">
+                    Me apasionan los <strong class="text-gradient">datos</strong>: tengo experiencia con
+                    <strong class="text-gradient">bases de datos analíticas, procesos ETL y creación de dashboards</strong>
+                    para transformar información dispersa en decisiones claras.
                 </p>
                 
-                <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                <p class="text-white leading-relaxed mb-4">
                     <a 
-                        href="assets/archives/CV_Estiven_Mejia.pdf"
+                        href="/assets/archives/CV_Estiven_Mejia_Fullstack.pdf"
                         target="_blank" 
                         rel="noopener noreferrer" 
                         title="Ver certificado"
@@ -100,7 +48,7 @@ import { contactInformation } from '../content/contactInformation';
                         "
                     >
                         <strong>¡Haga click aquí para ver mi curriculum!</strong>   
-                    </a>  
+                    </a>
                 </p>
             </div>
         </div>

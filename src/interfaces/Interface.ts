@@ -1,11 +1,3 @@
-import { technologies } from "../content/technologies"
-
-export interface IPage {
-    slug: string,
-    title: string,
-    component: string,
-}
-
 export interface IProject {
     slug: string,
     title: string,
@@ -15,8 +7,7 @@ export interface IProject {
 
 export interface ITechnology {
     name: string,
-    icon: string,
-    percentage: number
+    icon: string
 }
 
 export interface ITypeTechnology {
@@ -38,6 +29,7 @@ export interface IProject {
     },
     technologies: string[],
     url: string,
+    category: 'work' | 'personal',
     links: {
         github: IGithub[],
         live: string
@@ -48,6 +40,13 @@ export interface IExperienceInformation {
     title: string,
     company: string,
     date: string,
-    description: string,
     certification: string,
+    subtitle?: string,
+    projects?: IExperienceProject[],
+}
+
+export interface IExperienceProject {
+    name: string,
+    technologies: string[],
+    bullets: string[], // **text** renders as highlighted
 }

@@ -1,14 +1,20 @@
 ---
-import AboutMe from "../components/AboutMe.astro";
-import Contact from "../components/Contact.astro";
-import Stack from "../components/technologies/Stack.astro";
-import Experience from "../components/Experience.astro";
 import Layout from "../layouts/Layout.astro";
+import HeroScreen from "../components/screens/HeroScreen.astro";
+import AboutScreen from "../components/screens/AboutScreen.astro";
+import StackScreen from "../components/screens/StackScreen.astro";
+import ExperienceScreen from "../components/screens/ExperienceScreen.astro";
+import EducationScreen from "../components/screens/EducationScreen.astro";
+import ProjectsScreen from "../components/screens/ProjectsScreen.astro";
+import ContactScreen from "../components/screens/ContactScreen.astro";
 ---
 
-<Layout page="about-me">
-    <AboutMe/>
-    <Experience />
-    <Stack />
-    <Contact/>
+<Layout>
+    <HeroScreen />
+    <AboutScreen />
+    <StackScreen />
+    <ExperienceScreen />
+    <EducationScreen />
+    <ProjectsScreen />
+    <ContactScreen />
 </Layout>

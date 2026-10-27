@@ -2,13 +2,13 @@
 const { name, icon } = Astro.props as { name: string; icon: string };
 ---
 
-<div class="skill-item flex flex-col items-center group">
+<div class="flex flex-col items-center group">
   <img
     src={icon}
     alt={`${name} logo`}
-    class="w-18 h-18 object-contain transition-transform duration-200 group-hover:scale-110"
+    class="tech-icon w-10 h-10 object-contain"
   />
-  <span class="mt-2 font-semibold text-center text-white">
+  <span class="mt-2 text-sm font-semibold text-center text-white">
     {name}
   </span>
 </div>

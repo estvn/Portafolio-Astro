@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Torre de telecomunicaciones con seguimiento en campo">
+<rect width="800" height="500" fill="#111827"/><g stroke="#ffffff" stroke-opacity=".04"><path d="M80 0V500"/><path d="M160 0V500"/><path d="M240 0V500"/><path d="M320 0V500"/><path d="M400 0V500"/><path d="M480 0V500"/><path d="M560 0V500"/><path d="M640 0V500"/><path d="M720 0V500"/><path d="M0 83H800"/><path d="M0 166H800"/><path d="M0 249H800"/><path d="M0 332H800"/><path d="M0 415H800"/></g>
+<g fill="none" stroke="#22d3ee" stroke-width="3" stroke-linejoin="round"><path d="M400 90L330 400M400 90L470 400M345 330H455M360 260H440M375 190H425M345 330L440 260L375 190L400 90M455 330L360 260L425 190"/><path d="M300 400H500"/></g>
+<g fill="none" stroke="#667eea" stroke-width="3" stroke-linecap="round"><path d="M360 70a60 60 0 0 1 80 0M335 45a95 95 0 0 1 130 0" stroke-opacity=".8"/></g>
+<circle cx="400" cy="90" r="7" fill="#22d3ee"/>
+<g fill="#34d399"><circle cx="150" cy="380" r="9"/><circle cx="220" cy="300" r="9"/><circle cx="640" cy="330" r="9"/><circle cx="700" cy="240" r="9"/></g>
+<g fill="none" stroke="#34d399" stroke-opacity=".5" stroke-width="2" stroke-dasharray="6 6"><path d="M150 380L220 300L330 400M470 400L640 330L700 240"/></g>
+<g fill="#667eea" fill-opacity=".15" stroke="#667eea" stroke-width="2"><rect x="80" y="90" width="150" height="60" rx="10"/><rect x="570" y="90" width="150" height="60" rx="10"/></g>
+<g stroke="#667eea" stroke-opacity=".7" stroke-width="3"><path d="M100 112h90M100 130h50M590 112h90M590 130h50"/></g>
+</svg>

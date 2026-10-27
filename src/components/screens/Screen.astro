@@ -1,0 +1,12 @@
+---
+interface Props {
+  id: string;
+  class?: string;
+}
+
+const { id, class: className } = Astro.props;
+---
+
+<section id={id} class:list={["snap-start scroll-mt-[var(--nav-h)]", className]}>
+  <slot />
+</section>

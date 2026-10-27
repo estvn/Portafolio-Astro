@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Flujo ETL de archivos a base de datos">
+<rect width="800" height="500" fill="#111827"/><g stroke="#ffffff" stroke-opacity=".04"><path d="M80 0V500"/><path d="M160 0V500"/><path d="M240 0V500"/><path d="M320 0V500"/><path d="M400 0V500"/><path d="M480 0V500"/><path d="M560 0V500"/><path d="M640 0V500"/><path d="M720 0V500"/><path d="M0 83H800"/><path d="M0 166H800"/><path d="M0 249H800"/><path d="M0 332H800"/><path d="M0 415H800"/></g>
+<defs><g id="cyl" fill="none" stroke-width="3"><path d="M-40 -50v100a40 14 0 0 0 80 0v-100"/><ellipse cx="0" cy="-50" rx="40" ry="14"/><path d="M-40 -10a40 14 0 0 0 80 0M-40 30a40 14 0 0 0 80 0"/></g></defs>
+<g stroke="#667eea" fill="#667eea" fill-opacity=".12" stroke-width="3">
+<rect x="70" y="120" width="110" height="70" rx="10"/><rect x="70" y="215" width="110" height="70" rx="10"/><rect x="70" y="310" width="110" height="70" rx="10"/></g>
+<g stroke="#667eea" stroke-opacity=".7" stroke-width="3" fill="none"><path d="M100 150h50M100 175h30M100 245h50M100 270h30M100 340h50M100 365h30"/></g>
+<g fill="none" stroke="#667eea" stroke-opacity=".5" stroke-width="2"><path d="M180 155C260 155 280 250 340 250M180 250H340M180 345C260 345 280 250 340 250"/></g>
+<rect x="340" y="200" width="100" height="100" rx="18" fill="#22d3ee" fill-opacity=".12" stroke="#22d3ee" stroke-width="3"/>
+<circle cx="390" cy="250" r="22" fill="none" stroke="#22d3ee" stroke-width="3"/><circle cx="390" cy="250" r="7" fill="#22d3ee"/>
+<path d="M440 250H560" stroke="#22d3ee" stroke-opacity=".6" stroke-width="2" fill="none"/>
+<g fill="#22d3ee"><rect x="468" y="244" width="12" height="12"/><rect x="505" y="244" width="12" height="12"/></g>
+<g transform="translate(630 250)" stroke="#34d399" fill="#34d399" fill-opacity=".1"><use href="#cyl"/></g>
+</svg>

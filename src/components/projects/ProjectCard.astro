@@ -1,5 +1,5 @@
 ---
-const { title, description, image, technologies, links, url } = Astro.props;
+const { title, description, image, technologies, links, url, category } = Astro.props;
 ---
 
 <div class="project-card hover-lift glass dark:glass-dark rounded-2xl overflow-hidden project-item" data-category="backend">
@@ -25,13 +25,18 @@ const { title, description, image, technologies, links, url } = Astro.props;
 
     <div class="p-6">
         <h3 class="text-xl font-bold mb-2">{title}</h3>
-        <p class="text-gray-600 dark:text-gray-300 mb-4">{description}</p>
+        <p class="text-white mb-4">{description}</p>
         <div class="flex flex-wrap gap-2">
-            {technologies.map((tech:string[]) => (
-            <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
+            {technologies.filter((tech: string) => tech.toLowerCase() !== 'jquery').map((tech: string) => (
+            <span class="bg-blue-100 dark:bg-blue-900 text-white px-3 py-1 rounded-full text-sm">
                 {tech}  
             </span>
             ))}
         </div>
+        {category === 'work' && (
+        <a href={`/projects/${url}`} class="inline-block mt-5 bg-white text-gray-900 px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors duration-300">
+            Ver más detalles
+        </a>
+        )}
     </div>
 </div>

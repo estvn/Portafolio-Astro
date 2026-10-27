@@ -3,40 +3,35 @@ import "../assets/css/global.css"
 import "../assets/css/styles.css"
 import Head from "../components/Head.astro"
 import Nav from "../components/Nav.astro"
-
-import Project from "../components/projects/Project.astro"
-import Stack from "../components/technologies/Stack.astro"
-import Experience from "../components/Experience.astro"
-import Education from "../components/Education.astro"
-import Contact from "../components/Contact.astro"
 import Footer from "../components/Footer.astro"
 
-const { component, title } = Astro.props;
-const componentMap = {Project,Stack,Experience,Education,Contact};
-const Component = componentMap[component];
+const { title } = Astro.props;
 ---
 
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es">
   <Head title={title}/>
-  <body class="min-h-screen flex bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
+  <body class="min-h-dvh flex bg-gray-50 dark:bg-gray-900 text-white transition-colors duration-300">
+    <div id="scroll-progress"></div>
     <Nav/>
-      <main class="flex-1 ml-0 lg:ml-64 p-8 overflow-auto">
-      {Component ? <Component bg_style="900"/> : <slot/>}
-      <div class="block lg:hidden mt-4 p-2 w-full">
+    <main class="flex-1 w-full px-4 sm:px-8 pb-8 pt-[calc(var(--nav-h)+0.5rem)]">
+      <slot/>
+      <div class="mt-4 p-2 w-full">
         <Footer />
       </div>
-
     </main>
 
 <script src="../assets/js/main.js"></script>
+    <script>
+      import { initEtlBackground } from "../assets/js/etl-background.js";
+      import { initReveal } from "../assets/js/reveal.js";
+      import { initScrollProgress, initTimelines, initCounters } from "../assets/js/scroll-effects.js";
+
+      initEtlBackground();
+      initReveal();
+      initScrollProgress();
+      initTimelines();
+      initCounters();
+    </script>
   </body>
-  
 </html>
-
-
-
-
-
-
-
