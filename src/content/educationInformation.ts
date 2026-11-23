@@ -25,11 +25,20 @@ const dir = "/assets/archives/certifications/";
 
 export const certifications: ICertification[] = [
     {
+        title: "Ruta Análisis de Datos (Google Cloud Data Analytics Certificate - Beginner)",
+        title_en: "Data Analytics Path (Google Cloud Data Analytics Certificate - Beginner)",
+        issuer: "Talent Up Honduras (DIGER)",
+        date: "Noviembre 2026",
+        date_en: "November 2026",
+        pdf: dir + "Constancia_TalentUp_Google_Cloud_Data_Analytics.pdf",
+    },
+    {
         title: "Fundamentos de Java - Módulo 2",
         title_en: "Java Fundamentals - Module 2",
         issuer: "INFOP",
         date: "Agosto 2025",
         date_en: "August 2025",
+        pdf: dir + "Certificado_INFOP_Fundamentos_Java_2.pdf",
     },
     {
         title: "Programador en Base de Datos con PL/SQL",
