@@ -32,6 +32,7 @@ Each project is an MDX file at `src/pages/projects/content/NNN_project-name.mdx`
 ```yaml
 ---
 title: string
+category: 'work' | 'personal' | 'academic'
 description: string
 image: string        # path to image asset
 technologies: string[]
@@ -63,7 +64,7 @@ Central type definitions: `IProject`, `ITechnology`, `ITypeTechnology`, `IGithub
 - **Bilingual (ES default / EN)**: client-side only, no routing. Render text as sibling `<span data-lang="es">`/`<span data-lang="en">` (use `components/Bi.astro`; CSS in `global.css` hides the inactive one). Data files keep Spanish in the base field and English in `*_en` (`title_en`, `description_en`, `bullets_en`...). JS-rendered strings must use the same spans; placeholders use `data-ph-es`/`data-ph-en`.
 - **Language/theme state**: inline script in `Head.astro` sets `<html lang>` and `class="dark"` before paint from `localStorage` (`lang`, `theme`) with `navigator.language` / `prefers-color-scheme` fallback. `assets/js/theme-lang.js` wires the Nav buttons and dispatches `languagechange` / `themechange` on `document`.
 - **Theme**: Tailwind `dark:` is class-based (`@custom-variant` in `global.css`). Use semantic tokens (`text-fg`, `text-muted`, `bg-page`, `bg-chip`, `border-line`, `.neomorphism`, `.glass`, `.btn-solid`) instead of hardcoded `text-white`/`bg-gray-*`. Tokens are CSS vars in `global.css`.
-- **Projects section**: work projects show the first 4, rest are `hidden` until the "show more" button (`show-more.js`); personal projects are a scroll-snap carousel with 3s autoplay (`carousel.js`, paused on hover/focus/hidden tab, off with reduced motion). No card tilt/hover movement.
+- **Projects section**: work projects show the first 4, rest are `hidden` until the "show more" button (`show-more.js`); under "Otros proyectos", `category: 'personal'` and `category: 'academic'` projects each get a scroll-snap carousel (`ProjectCarousel.astro`) with 3s autoplay (`carousel.js`, paused on hover/focus/hidden tab, off with reduced motion). Report HTML files and screenshots for a project live in `public/assets/reports/<project>/` and `public/assets/img/projects/<project>/`. No card tilt/hover movement.
 - Project MDX bodies wrap each language in `<div data-lang="es">` / `<div data-lang="en">`.
 
 ## Adding content
@@ -71,3 +72,12 @@ Central type definitions: `IProject`, `ITechnology`, `ITypeTechnology`, `IGithub
 **New project:** create `src/pages/projects/content/NNN_name.mdx` following the frontmatter schema above — routing is automatic.
 
 **New technology:** add an entry to the relevant `ITypeTechnology` array in `src/content/technologies.ts`.
+
+## Personal project page template (user-defined)
+
+Each `category: 'personal'` page is an explanation blog, direct and not hyper-technical:
+1. **Resumen general**: what was built with which technology (one line per piece), how it was validated, where it is deployed.
+2. **One section per component** (e.g. Store, Backoffice, API): what was done, key technical decisions, then tests.
+3. **Cloud / infrastructure last.**
+4. **Tests** per component and per tool (SonarQube, OWASP ZAP, k6...), in this order: findings *before* -> corrections -> results *after* -> links to the HTML reports. A report that covers several components is split into one HTML per component (`public/assets/reports/<project>/<component>/`).
+5. Screenshots where they exist. No "Pendientes" section. No video-frame/thumbnail captures: only technical images (diagrams made with draw.io, dashboards, reports).
