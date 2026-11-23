@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calidad de código: propuestas de corrección (ronda 2)</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#59636e; --card:#f6f8fa; --line:#d1d9e0; --accent:#0969da; --crit:#cf222e; --maj:#bc4c00; --min:#7d6a00; --ok:#1a7f37; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#151b23; --line:#30363d; --accent:#4493f8; --crit:#ff7b72; --maj:#ffa657; --min:#e3b341; --ok:#3fb950; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; } h2 { font-size:21px; margin:44px 0 14px; padding-top:8px; border-top:1px solid var(--line); }
+  h3 { font-size:17px; margin:0 0 6px; } h4 { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:14px 0 4px; }
+  p { margin:4px 0; } .lead { color:var(--muted); }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px 12px; overflow:auto; margin:4px 0; } pre code { font-size:12.5px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; vertical-align:top; padding:7px 10px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  th { color:var(--muted); font-weight:600; } td.num { text-align:center; }
+  table.loc td:first-child { white-space:nowrap; width:1%; } table.loc code { word-break:break-all; }
+  .g { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:8px; padding:14px 16px; margin:16px 0; }
+  .g.suppress { border-left-color:var(--min); } .g.verify { border-left-color:var(--maj); }
+  .id { display:inline-block; background:var(--accent); color:#fff; border-radius:6px; padding:0 8px; font-size:13px; margin-right:6px; }
+  .tag { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:0 8px; font-size:11px; color:var(--muted); }
+  .tag.critical { color:var(--crit); border-color:var(--crit); } .tag.major { color:var(--maj); border-color:var(--maj); } .tag.minor { color:var(--min); border-color:var(--min); }
+  .tag.act-fix { color:var(--ok); border-color:var(--ok); } .tag.act-suppress { color:var(--min); border-color:var(--min); } .tag.act-verify { color:var(--maj); border-color:var(--maj); }
+  .res { margin-top:10px; } .note { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:13.5px; }
+  nav a { color:var(--accent); margin-right:14px; } a { color:var(--accent); }
+  @media (max-width:700px) { table.sum th:nth-child(4), table.sum td:nth-child(4) { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Propuestas de corrección (ronda 2)</h1>
+  <p class="lead">Cada propuesta cita la regla de SonarQube, el archivo y la línea (leída del código actual) y la técnica. Nada de esto está aplicado todavía: es el plan para aprobar.</p>
+  <div class="note"><b>Qué quedó abierto tras la ronda 1.</b> De los 40 issues iniciales quedan 8: 2 en el storefront y 6 en el back office; el API quedó en 0. Tras leer el código de cada uno, <b>ninguno es una falla real</b>: dos son regex de correo con la entrada ya acotada a 254 caracteres (mi tope no satisfizo a Sonar, que mira la forma de la expresión), uno es un id de analítica con <code>Math.random</code> como último recurso, y cinco son avisos de accesibilidad sobre código que ya es correcto. Por eso <b>no se corrige código esta ronda: las 8 se suprimen</b>, cada excepción con su motivo y apuntando a un solo archivo. Una supresión quita el aviso del reporte, pero no es una corrección, y así se dice aquí.</div>
+  <h2>Resumen</h2>
+  <table class="sum"><thead><tr><th>ID</th><th>Proyecto</th><th>Regla</th><th>Tema</th><th>Casos</th><th>Acción</th><th>Prioridad</th><th>Esfuerzo</th></tr></thead><tbody>
+  <tr><td><a href="#R1"><b>R1</b></a></td><td>Storefront</td><td><code>typescript:S8786</code></td>
+  <td>Regex de correo: entrada acotada, el peor caso no existe</td><td class="num">1</td><td>Suprimir con justificación</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#R2"><b>R2</b></a></td><td>Back office</td><td><code>typescript:S8786</code></td>
+  <td>La misma regex de correo, ya centralizada en un solo archivo</td><td class="num">1</td><td>Suprimir con justificación</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#R3"><b>R3</b></a></td><td>Storefront</td><td><code>typescript:S2245</code></td>
+  <td><code>Math.random()</code> como último recurso en los ids de analítica</td><td class="num">1</td><td>Suprimir con justificación</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#R4"><b>R4</b></a></td><td>Back office</td><td><code>typescript:S6845 / S6852 / S6825</code></td>
+  <td>Cinco avisos de accesibilidad sobre código que ya es correcto</td><td class="num">5</td><td>Suprimir con justificación</td><td>Baja</td><td>XS</td></tr></tbody></table>
+  <p class="lead" style="margin-top:10px">Total: 8 ubicaciones; el conteo de issues de Sonar es 40 porque <code>make_fixtures.py:20</code> tiene dos avisos en la misma línea.</p>
+  <nav style="margin-top:8px"><a href="#api">API (Go + Fiber)</a><a href="#frontoffice">Storefront (Astro, store-a)</a><a href="#backoffice">Back office (React + Vite)</a></nav>
+  
+  <section id="api"><h2>API (Go + Fiber)</h2></section>
+  <section id="frontoffice"><h2>Storefront (Astro, store-a)</h2>
+  <article id="R1" class="g suppress">
+    <h3><span class="id">R1</span> Regex de correo: entrada acotada, el peor caso no existe</h3>
+    <p class="meta"><code>typescript:S8786</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-suppress">Suprimir con justificación</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>Sonar marca la forma de <code>[^\s@&lt;&gt;"]+@[^\s@&lt;&gt;"]+\.[^\s@&lt;&gt;"]+</code> (backtracking polinómico). Pero <code>isEmail</code> descarta todo lo que pase de 254 caracteres antes de ejecutarla, y con 254 caracteres el peor caso son unas decenas de miles de pasos, microsegundos. En la ronda 1 intenté arreglarlo con ese tope y Sonar siguió marcándolo porque analiza la expresión, no la longitud de la entrada.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/lib/contact.ts:23</code></td><td><code>const EMAIL = /^[^\s@&lt;&gt;&quot;]+@[^\s@&lt;&gt;&quot;]+\.[^\s@&lt;&gt;&quot;]+$/;</code></td></tr></table>
+    <h4>Técnica</h4><p>Suprimir, no reescribir. Reemplazar la regex por un validador con <code>indexOf</code> añadiría código y riesgo de diferencias sutiles (qué es un correo "con forma") para arreglar un caso que ya está acotado. La excepción queda declarada, con su motivo, en <code>sonar-project.properties</code>.</p>
+    <h4>Propuesta</h4><pre><code># store-a/sonar-project.properties
+sonar.issue.ignore.multicriteria=e1,e2
+# isEmail descarta entradas de mas de 254 caracteres antes de la regex: peor caso acotado
+sonar.issue.ignore.multicriteria.e1.ruleKey=typescript:S8786
+sonar.issue.ignore.multicriteria.e1.resourceKey=src/lib/contact.ts</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno para el producto. La excepción cubre toda la regla S8786 en ese archivo; hoy solo tiene esa regex.</p>
+    <p class="res"><b>Resultado esperado:</b> Suprime 1 issue (excepción justificada, no corrección).</p>
+  </article>
+  <article id="R3" class="g suppress">
+    <h3><span class="id">R3</span> <code>Math.random()</code> como último recurso en los ids de analítica</h3>
+    <p class="meta"><code>typescript:S2245</code> <span class="tag major">MAJOR</span> <span class="tag">VULNERABILITY</span> <span class="tag act-suppress">Suprimir con justificación</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p><code>randomHex</code> usa <code>crypto.getRandomValues</code> y solo cae a <code>Math.random</code> si <code>crypto</code> no existe, algo que no pasa en los navegadores actuales. El valor es un id de vista o de sesión de analítica, nunca un secreto, un token ni una clave. El mensaje de Sonar es "asegúrate de que es seguro aquí": aquí lo es. Es la regla que mantiene el rating de seguridad del storefront en C, pero por una revisión pendiente, no por un fallo.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/lib/tracking.ts:81</code></td><td><code>for (let i = 0; i &lt; n; i++) bytes[i] = Math.floor(Math.random() * 256);</code></td></tr></table>
+    <h4>Técnica</h4><p>Suprimir. Quitar el respaldo es posible, pero cambiaría el comportamiento (el tracking dejaría de funcionar sin <code>crypto</code>) y tocaría tests para eliminar un riesgo que no existe. El comentario de <code>randomHex</code> ya dice que son ids de analítica; la excepción lo deja registrado.</p>
+    <h4>Propuesta</h4><pre><code># store-a/sonar-project.properties
+# ids de analitica (vista/sesion), nunca secretos; Math.random solo si no existe crypto
+sonar.issue.ignore.multicriteria.e2.ruleKey=typescript:S2245
+sonar.issue.ignore.multicriteria.e2.resourceKey=src/lib/tracking.ts</code></pre>
+    <h4>Riesgo y verificación</h4><p>Se pierde la alerta si alguien usa ese helper para generar un secreto. Si algún día se necesita un id impredecible, el helper debe usar siempre <code>crypto</code>.</p>
+    <p class="res"><b>Resultado esperado:</b> Suprime 1 issue y el rating de seguridad del storefront pasa de C a A.</p>
+  </article></section>
+  <section id="backoffice"><h2>Back office (React + Vite)</h2>
+  <article id="R2" class="g suppress">
+    <h3><span class="id">R2</span> La misma regex de correo, ya centralizada en un solo archivo</h3>
+    <p class="meta"><code>typescript:S8786</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-suppress">Suprimir con justificación</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>En la ronda 1 moví la regex de 4 archivos a <code>validation.ts</code> (4 issues pasaron a 1; Sonar lo cuenta como "nuevo" porque cambió de archivo). <code>isEmailShape</code> ya limita la entrada a 254 caracteres antes de ejecutarla, igual que R1.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/lib/validation.ts:1</code></td><td><code>const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;</code></td></tr></table>
+    <h4>Técnica</h4><p>Misma decisión que R1. Esta vez la excepción es mejor que antes: está en un solo lugar y los cuatro llamadores (reset, usuarios, perfil, tenants) la comparten.</p>
+    <h4>Propuesta</h4><pre><code># BACKOFFICE_FE_PERFUME_STORES/sonar-project.properties
+# isEmailShape descarta entradas de mas de 254 caracteres antes de la regex: peor caso acotado
+sonar.issue.ignore.multicriteria.v1.ruleKey=typescript:S8786
+sonar.issue.ignore.multicriteria.v1.resourceKey=src/lib/validation.ts</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno para el producto.</p>
+    <p class="res"><b>Resultado esperado:</b> Suprime 1 issue (excepción justificada).</p>
+  </article>
+  <article id="R4" class="g suppress">
+    <h3><span class="id">R4</span> Cinco avisos de accesibilidad sobre código que ya es correcto</h3>
+    <p class="meta"><code>typescript:S6845 / S6852 / S6825</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-suppress">Suprimir con justificación</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>Los dos <code>tabIndex</code> del dashboard son contenedores con scroll que deben poder enfocarse con teclado (WCAG 2.1.1). <code>Tabs.tsx</code> es un <code>tablist</code> cuyas pestañas llevan <code>tabIndex</code> móvil (0 la activa, -1 el resto). <code>DataTable.tsx</code> oculta filas de esqueleto de carga, decorativas y sin contenido interactivo. <code>ProfileMenu.tsx</code> ya enfoca su primer ítem al abrir y maneja Escape, Tab y flechas. En cada uno, hacer lo que Sonar pide empeoraría la accesibilidad o añadiría código redundante.</p>
+    <h4>Dónde (5)</h4>
+    <table class="loc"><tr><td><code>src/sections/dashboard/index.tsx:185</code></td><td><code>tabIndex={0}</code></td></tr><tr><td><code>src/sections/dashboard/index.tsx:222</code></td><td><code>tabIndex={0}</code></td></tr><tr><td><code>src/ui/Tabs.tsx:50</code></td><td><code>&lt;div role=&quot;tablist&quot; aria-label={label} onKeyDown={onKeyDown} className={cx('flex gap-1 overflow-x-auto border-b border-line', className)}&gt;</code></td></tr><tr><td><code>src/ui/DataTable.tsx:103</code></td><td><code>&lt;tr key={i} aria-hidden=&quot;true&quot;&gt;</code></td></tr><tr><td><code>src/shell/ProfileMenu.tsx:92</code></td><td><code>&lt;div</code></td></tr></table>
+    <h4>Técnica</h4><p>Suprimir, cada excepción apuntando a un solo archivo y con su motivo. Para <code>ProfileMenu</code> había una alternativa de una línea (<code>tabIndex={-1}</code>), pero no corrige nada real: el menú ya gestiona el foco.</p>
+    <h4>Propuesta</h4><pre><code># BACKOFFICE_FE_PERFUME_STORES/sonar-project.properties
+sonar.issue.ignore.multicriteria=d1,t1,r1,m1,v1
+# contenedores con scroll enfocables por teclado (WCAG 2.1.1)
+sonar.issue.ignore.multicriteria.d1.ruleKey=typescript:S6845
+sonar.issue.ignore.multicriteria.d1.resourceKey=src/sections/dashboard/index.tsx
+# tablist: el foco lo reciben las pestanas (tabIndex movil)
+sonar.issue.ignore.multicriteria.t1.ruleKey=typescript:S6852
+sonar.issue.ignore.multicriteria.t1.resourceKey=src/ui/Tabs.tsx
+# filas de esqueleto decorativas
+sonar.issue.ignore.multicriteria.r1.ruleKey=typescript:S6825
+sonar.issue.ignore.multicriteria.r1.resourceKey=src/ui/DataTable.tsx
+# menu que ya gestiona el foco al abrir
+sonar.issue.ignore.multicriteria.m1.ruleKey=typescript:S6852
+sonar.issue.ignore.multicriteria.m1.resourceKey=src/shell/ProfileMenu.tsx</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno para el producto. Se pierde la alerta si aparece un problema real de la misma regla en esos archivos.</p>
+    <p class="res"><b>Resultado esperado:</b> Suprime 5 issues (excepciones justificadas).</p>
+  </article></section>
+  <h2>Qué se aplica</h2><ol><li><b>R1 y R3</b> en <code>store-a/sonar-project.properties</code>.</li><li><b>R2 y R4</b> en <code>BACKOFFICE_FE_PERFUME_STORES/sonar-project.properties</code>.</li><li>Cambios de código: ninguno. Solo cambian los dos archivos de propiedades de Sonar.</li></ol><p class="lead">Cobertura sigue en 0 % en los tres proyectos: no es un hallazgo, pero conviene medirla en el "after" final.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Essenza - k6 contra el limite del plan (cloud)</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:860px;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#1b1b1b;background:#fff}
+table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{border:1px solid #ccc;padding:.4rem .6rem;text-align:left}th{background:#f1f1f1}
+.bad{color:#b00020;font-weight:600}.note{color:#555;font-size:.9rem}
+@media(prefers-color-scheme:dark){body{background:#151515;color:#eee}th{background:#262626}td,th{border-color:#444}.note{color:#aaa}.bad{color:#ff6b7f}}
+</style></head><body>
+<h1>k6 contra el limite del plan (Render Free)</h1>
+<p>Fecha de las corridas: 2026-11-22. API en contenedor con los limites de Render Free (0.1 CPU, 512 MB, <code>ENVIRONMENT=production</code>); tienda y backoffice con build de produccion; base de datos y almacenamiento en la misma laptop. Una corrida por nivel. Este resumen contiene solo las filas que muestran el techo del plan; el detalle por componente esta en los informes de cada componente.</p>
+<p>Lineas de aprobacion: fallos &lt; 1 %, API de la tienda p95 &lt; 500 ms, pantallas del backoffice p95 &lt; 800 ms, login p95 &lt; 3 s.</p>
+<h2>Antes de la correccion</h2>
+<table><tr><th>Prueba</th><th>300 usuarios</th><th>500 usuarios</th></tr>
+<tr><td>API de la tienda, p95 / fallos</td><td>1.49 s / 2.5 %</td><td>2.37 s / <span class="bad">34.9 %</span></td></tr>
+<tr><td>Backoffice (todas las llamadas), p95 / fallos</td><td>3.44 s / <span class="bad">55.9 %</span></td><td>3.03 s / <span class="bad">79.3 %</span></td></tr>
+<tr><td>Login masivo, fallos</td><td class="bad">98.8 %</td><td class="bad">99.6 %</td></tr></table>
+<h2>Despues</h2>
+<table><tr><th>Prueba</th><th>300 usuarios</th><th>500 usuarios</th></tr>
+<tr><td>API de la tienda, p95 / fallos</td><td>1.49 s / 2.3 %</td><td>3.09 s / <span class="bad">42.2 %</span></td></tr>
+<tr><td>Backoffice (todas las llamadas), p95 / fallos</td><td>2.80 s / <span class="bad">50.4 %</span></td><td>3.50 s / <span class="bad">80.2 %</span></td></tr>
+<tr><td>Login masivo, fallos</td><td class="bad">91.9 %</td><td class="bad">97.5 %</td></tr></table>
+<h2>Lectura</h2>
+<ul>
+<li>A 300 y 500 usuarios el contenedor esta saturado: es el limite del plan gratuito, no un defecto de codigo. Cada endpoint tardaba de 10 a 40 ms solo; el resto es cola en 0.1 CPU.</li>
+<li>Con 0.1 CPU caben menos de 2 logins por segundo.</li>
+<li>La unica correccion real de la ronda fue el costo del hash del usuario de prueba; con ella el login masivo con 100 usuarios paso de 84.0 % a 24.9 % de fallos (esa fila pertenece al informe de la API).</li>
+<li>Diferencias de 100 a 300 ms entre corridas son ruido (una corrida por nivel).</li>
+<li>Limites: laptop compartida, y los numeros absolutos no son los de produccion. Cuanto mejoraria un plan con mas CPU: no medido.</li>
+</ul>
+<p class="note">Fuente: load-code-test/RESULTS.md (2026-11-22).</p>
+</body></html>

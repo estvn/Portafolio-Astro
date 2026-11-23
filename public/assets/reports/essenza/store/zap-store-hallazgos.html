@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tienda: hallazgos de ZAP (antes)</title>
+<style>:root{--bg:#fff;--fg:#1b1f24;--muted:#5b6570;--line:#d8dee4;--card:#f6f8fa;--ok:#067647;--okbg:#d1fadf;--bad:#b42318;--badbg:#fee4e2;--warn:#b54708;--warnbg:#fef0c7;--same:#344054;--samebg:#eaecf0}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#9aa4af;--line:#30363d;--card:#161b22;--ok:#8be0ae;--okbg:#12301f;--bad:#ffb4a9;--badbg:#4a1d1a;--warn:#ffd488;--warnbg:#40300f;--same:#c9d1d9;--samebg:#262c36}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 64px}h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:36px 0 8px;padding-top:8px;border-top:1px solid var(--line)}
+.muted{color:var(--muted)}.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:8px 0;min-width:720px}
+th,td{border:1px solid var(--line);padding:7px 10px;vertical-align:top;text-align:left}th{background:var(--card)}.num{text-align:center}.sum{min-width:0;width:auto}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.ok{color:var(--ok);background:var(--okbg)}.real,.new{color:var(--bad);background:var(--badbg)}.part{color:var(--warn);background:var(--warnbg)}.fp,.same{color:var(--same);background:var(--samebg)}
+code{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:13px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}.card b{font-size:26px;margin-right:6px}.note{background:var(--card);border-left:4px solid var(--warn);padding:10px 14px;margin:12px 0;border-radius:4px}</style></head><body><main>
+
+<h1>Tienda (Storefront): hallazgos de ZAP, estado "antes"</h1>
+<p class="muted">Fecha: 2026-11-21. ZAP 2.17.0. Tienda compilada para producción (<code>astro build</code> + <code>astro preview</code>, <code>localhost:4321</code>) hablando con la API en modo producción (<code>127.0.0.1:8000</code>). Fuente: el reporte JSON de la tienda y su nota de resultados. Solo incluye la tienda.</p>
+<div class="cards">
+<div class="card"><b>10</b>alertas distintas (tienda y API pública)</div>
+<div class="card"><b>2</b>problemas reales (cabeceras de seguridad)</div>
+<div class="card"><b>0</b>inyección o XSS confirmados</div></div>
+<h2>Cómo se ejecutó</h2>
+<ol>
+<li>Build y preview de la tienda con las variables <code>PUBLIC_*</code> apuntando a la API local.</li>
+<li>ZAP con una sesión nueva, sin regla de autenticación (la tienda es pública), 4 hilos por host y tope de 30 minutos.</li>
+<li>Playwright por el proxy de ZAP (proyectos de tienda y tienda móvil): <b>33 pasan, 3 fallan, 1 omitido</b>.</li>
+<li>Active Scan de la tienda con la política "Dev Standard": 3 301 peticiones, 100 %.</li>
+<li>Active Scan de la parte pública de la API que usa la tienda, con la política "API": 3 919 peticiones, 100 %.</li>
+</ol>
+<p>Cobertura: ZAP aprendió 62 URLs de la tienda (home, catálogo con filtros, categorías, marcas, productos, artículos, contacto y páginas 404) y 14 de la API pública.</p>
+<h2>Alertas</h2>
+<div class="wrap"><table><tr><th>Alerta</th><th>Riesgo</th><th>Instancias</th><th>¿Real?</th><th>Qué es</th></tr>
+<tr><td>CSP: script-src unsafe-inline</td><td>Medium</td><td class="num">5</td><td><span class="tag real">Real</span></td><td>Hay scripts inline (islas y JSON-LD). La primera ronda definió script-src con unsafe-inline; la segunda lo reemplazó por hashes SHA-256 de Astro.</td></tr><tr><td>CSP: style-src unsafe-inline</td><td>Medium</td><td class="num">5</td><td><span class="tag real">Real</span></td><td>Estilos inline de Astro. Se resolvió con hashes; solo queda style-src-attr con unsafe-inline para los atributos style="" (no se pueden hashear).</td></tr><tr><td>CSP: Wildcard Directive</td><td>Medium</td><td class="num">5</td><td><span class="tag real">Real</span></td><td>La CSP solo traía frame-ancestors, base-uri, object-src y form-action: sin default-src ni script-src, nada limitaba de dónde se cargan JS, imágenes y estilos.</td></tr><tr><td>Timestamp Disclosure - Unix</td><td>Low</td><td class="num">1</td><td><span class="tag fp">Falso positivo</span></td><td>Una constante numérica dentro del JS empaquetado del hero, no una fecha del servidor.</td></tr><tr><td>X-Content-Type-Options Header Missing</td><td>Low</td><td class="num">5</td><td><span class="tag real">Real</span></td><td>Las páginas sí enviaban nosniff; los archivos /_astro/* (JS y CSS) no.</td></tr><tr><td>Authentication Request Identified</td><td>Informational</td><td class="num">1</td><td><span class="tag fp">Informativa</span></td><td>Es la API pública vista desde la tienda: avisa de que existe un login.</td></tr><tr><td>Modern Web Application</td><td>Informational</td><td class="num">5</td><td><span class="tag fp">Informativa</span></td><td>Solo informa de que es una aplicación web moderna.</td></tr><tr><td>Retrieved from Cache</td><td>Informational</td><td class="num">5</td><td><span class="tag fp">Informativa</span></td><td>Los assets llevan caché inmutable a propósito.</td></tr><tr><td>Session Management Response Identified</td><td>Informational</td><td class="num">1</td><td><span class="tag fp">Informativa</span></td><td>Es la API pública vista desde la tienda: avisa de que el login devuelve un token.</td></tr><tr><td>User Controllable HTML Element Attribute (Potential XSS)</td><td>Informational</td><td class="num">18</td><td><span class="tag fp">Falso positivo</span></td><td>Probado a mano con un script en los parámetros del catálogo: Astro escapa y no se refleja sin escapar.</td></tr></table></div>
+<p class="muted">Las dos filas de autenticación y sesión son de la API pública vista desde la tienda (<code>127.0.0.1:8000</code>); las demás son de la tienda.</p>
+<div class="note"><b>Conclusión.</b> Dos hallazgos reales de cabeceras: CSP incompleta (tres alertas Medium del mismo origen) y <code>nosniff</code> ausente en los archivos estáticos. Ninguna inyección ni XSS.</div>
+<h2>Fallos de Playwright (no son de seguridad)</h2>
+<p>Los mismos 3 fallan con y sin ZAP, así que no los causa el proxy:</p>
+<ul>
+<li><b>Móvil:</b> el menú se abre y se cierra, pero la página tenía scroll horizontal. Defecto de maquetación real.</li>
+<li><b>URLs manipuladas:</b> <code>/catalogo/?orden=zzz&amp;genero=zzz</code> respondía 200 en vez del 302 esperado.</li>
+<li><b>Filtros de la landing:</b> la hoja de filtros inferior fallaba; causa no investigada en ese momento.</li>
+</ul>
+<h2>Límites</h2>
+<ul>
+<li>ZAP no analiza el DOM: solo se verificó a mano que el parámetro reflejado en el catálogo no ejecuta un script.</li>
+<li>Solo se cubrió lo que ejercita la suite.</li>
+<li>El preview local no pasa por Cloudflare.</li>
+<li>La base tenía datos de ataque creados por escaneos anteriores (por ejemplo una categoría con nombre de payload); aparecen como URLs de la tienda.</li>
+<li>La autorización por rol y tenant no la cubre ZAP.</li>
+</ul>
+</main></body></html>

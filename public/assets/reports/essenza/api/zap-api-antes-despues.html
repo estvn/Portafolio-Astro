@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OWASP ZAP de la API: antes y después</title>
+<style>
+:root{--bg:#fff;--fg:#1b1f24;--muted:#5b6570;--line:#d8dee4;--card:#f6f8fa;--ok:#067647;--okbg:#d1fadf;--bad:#b42318;--badbg:#fee4e2;--warn:#b54708;--warnbg:#fef0c7;--same:#344054;--samebg:#eaecf0}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#9aa4af;--line:#30363d;--card:#161b22;--ok:#8be0ae;--okbg:#12301f;--bad:#ffb4a9;--badbg:#4a1d1a;--warn:#ffd488;--warnbg:#40300f;--same:#c9d1d9;--samebg:#262c36}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+main{max-width:1150px;margin:0 auto;padding:24px 16px 64px}h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:36px 0 8px;padding-top:8px;border-top:1px solid var(--line)}
+.muted{color:var(--muted)}.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:8px 0;min-width:780px}
+th,td{border:1px solid var(--line);padding:7px 10px;vertical-align:top;text-align:left}th{background:var(--card)}.num{text-align:center}.sum{min-width:0;width:auto}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.ok{color:var(--ok);background:var(--okbg)}.real,.new{color:var(--bad);background:var(--badbg)}.part{color:var(--warn);background:var(--warnbg)}.fp,.same{color:var(--same);background:var(--samebg)}
+code{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:13px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:12px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}.card b{font-size:26px;margin-right:6px}.note{background:var(--card);border-left:4px solid var(--warn);padding:10px 14px;margin:12px 0;border-radius:4px}
+</style></head><body><main>
+<h1>OWASP ZAP de la API: antes y después</h1>
+<p class="muted">2026-11-21. ZAP 2.17.0, API en modo producción (<code>ENVIRONMENT=production</code>) en <code>127.0.0.1:8000</code>, base de desarrollo. Esta página contiene solo la API; sale de los dos JSON de <code>api/before</code> y <code>api/after</code>.</p>
+
+<h2>Totales</h2>
+<div class="wrap"><table class="sum"><tr><th></th><th>High</th><th>Medium</th><th>Low</th><th>Info</th><th>Alertas distintas</th><th>Instancias</th></tr>
+<tr><td>Antes</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">1</td><td class="num">3</td><td class="num">12</td></tr>
+<tr><td>Después</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">1</td><td class="num">3</td><td class="num">12</td></tr></table></div>
+<div class="note"><b>Resumen.</b> La API no tuvo cambios de lógica, por eso las tres alertas siguen igual. La única alta (SQL Injection) es un falso positivo comprobado en la base de datos y cubierto con un test de integración. No se encontró ninguna vulnerabilidad real con ZAP en la API.</div>
+
+<h2>Alertas, antes y después</h2>
+<div class="wrap"><table><tr><th>Alerta</th><th>Riesgo</th><th>Antes</th><th>Después</th><th>Estado</th><th>Qué es</th></tr><tr><td>SQL Injection</td><td>High</td><td class="num">9</td><td class="num">9</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Falso positivo</span> ZAP compara 201 (nombre nuevo) con 409 (ya existe). Los ataques se guardan como texto y el INSERT usa parámetros. Prueba: test de integración 67430c1.</td></tr><tr><td>Private IP Disclosure</td><td>Low</td><td class="num">1</td><td class="num">1</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Falso positivo</span> 172.23.247.179 es la puerta de enlace de WSL (entorno de desarrollo), vista como IP de visitante en un endpoint de administración.</td></tr><tr><td>Authentication Request Identified</td><td>Informational</td><td class="num">2</td><td class="num">2</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Informativa</span> Solo avisa de que existen login y reset de contraseña.</td></tr></table></div>
+
+<h2>Correcciones</h2>
+<div class="wrap"><table><tr><th>Problema</th><th>Corrección</th><th>Commit</th></tr>
+<tr><td>SQL Injection (High), falso positivo</td><td>Sin cambio de lógica. Test de integración que guarda <code>' OR 1=1 --</code> en un nombre y comprueba que queda como texto literal, y que el duplicado responde 409.</td><td><code>67430c1</code></td></tr>
+<tr><td>Primer escaneo superficial (solo 2.2 % de respuestas 2xx)</td><td>No era un hallazgo sino un problema de la prueba: OpenAPI generado con cuerpos e ids reales, DELETE en un archivo aparte, rutas de plataforma con un usuario superadmin, <code>change-password</code> y <code>auth/me</code> excluidos, 4 hilos y tope de 20 minutos, subida de imagen válida sembrada a mano.</td><td>-</td></tr></table></div>
+
+<h2>Cómo se ejecutó cada prueba</h2>
+<div class="wrap"><table><tr><th></th><th>Antes</th><th>Después</th></tr>
+<tr><td>Pasada principal (74 operaciones, sin DELETE)</td><td>68 640 peticiones</td><td>21 402 peticiones</td></tr>
+<tr><td>Pasada de plataforma (6 operaciones, usuario superadmin)</td><td>1 438 peticiones</td><td>1 422 peticiones</td></tr>
+<tr><td>Pasada de DELETE (11 operaciones)</td><td>70 137 peticiones</td><td>23 043 peticiones</td></tr></table></div>
+<ul>
+<li><b>Menos peticiones en el "después".</b> La diferencia se repitió en dos corridas independientes y no se conoce la causa. Todos los escaneos terminaron al 100 %, así que se lee como "mismas alertas", no como "misma cantidad de pruebas".</li>
+<li><b>Base de datos.</b> Cada escaneo "después" partió de la misma base limpia que el "antes".</li>
+<li><b>Operaciones con 2xx.</b> En la cobertura del OpenAPI, 62 de 74 operaciones del archivo principal respondieron 2xx; la nota del "antes" dice 63 de 74 para la pasada principal. Es una diferencia de una operación que no se reconcilió. Las que no dan 2xx tienen causa conocida (códigos de reset por correo, invitación en su primera hora, logo binario, <code>change-password</code> excluido).</li>
+</ul>
+
+<h2>Límites</h2>
+<ul>
+<li>ZAP no prueba autorización: acceso a datos de otro tenant o de otro rol (IDOR), <code>X-Tenant</code> falso, JWT manipulado, enumeración de usuarios. Eso se cubre con los tests de integración de la API (RLS, RBAC y escalada de roles), no con este escaneo. No hay una prueba manual con curl por rol y tenant registrada: no medido.</li>
+<li>No se probó la subida del logo del negocio (exige un PNG binario real) ni los códigos de reset enviados por correo.</li>
+<li>El límite de tasa estaba apagado durante los escaneos.</li>
+<li>Esta página no incluye los JSON ni los HTML originales de ZAP porque contienen los JWT de las cuentas de prueba.</li>
+</ul>
+</main></body></html>

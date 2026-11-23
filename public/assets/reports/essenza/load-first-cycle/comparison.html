@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EssenzaHn before and after</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--line:#ddd;--ok:#1a7f37;--warn:#9a6700;--bad:#cf222e;--card:#f6f8fa}
+@media(prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--mut:#999;--line:#333;--ok:#3fb950;--warn:#d29922;--bad:#f85149;--card:#1a1a1a}}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;max-width:1000px;margin:0 auto;padding:16px}
+h1{margin:.4em 0}h2{margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:4px}p,li{color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:12px 0}
+.card h3{margin:.2em 0}.big{font-size:1.4em;color:var(--fg)}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+table{border-collapse:collapse;width:100%;margin:.4em 0 1.2em}th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}tr.grp td{text-align:left;font-weight:600;background:var(--card)}td.note{text-align:left;color:var(--mut);font-size:.9em}
+a{color:inherit}code{font-size:.9em}
+@media(max-width:640px){table{display:block;overflow-x:auto}}
+</style><body>
+<h1>EssenzaHn: load tests, before and after</h1>
+<p>Go API tested with k6 inside a container limited to what Render Free gives (0.1 CPU, 512 MB), local Postgres, one laptop.
+These numbers compare the system with itself; they are not production numbers. Failed = HTTP 5xx or no answer.</p>
+
+<h2>Improvements applied</h2>
+<div class="card"><h3>1. Cheaper password hash at login</h3>
+<p><b>Problem found:</b> argon2id with 64 MiB, 3 passes, 4 lanes cost about 3.6 s of CPU per login on 0.1 CPU. The login storm (everybody logs in at once)
+succeeded for only 31 % of 50 users and 2 % of 100 users.</p>
+<p><b>Change:</b> OWASP minimum profile, 19 MiB, 2 passes, 1 lane (<code>api/internal/shared/security/security.go</code>). Existing hashes keep verifying
+(the parameters are stored inside each hash) but keep their old cost until the password is set again; rehash-on-login was evaluated and not implemented.</p>
+<p><b>Result (10 sequential logins, 0.1 CPU):</b> <span class="big ok">3.6 s &rarr; 0.7 s per login</span> (about 5x cheaper).
+The login storm after the change was not valid as evidence (every user retried with no pause); the sequential measurement is the reliable number.</p></div>
+
+<div class="card"><h3>2. Photo conversion moved to the browser</h3>
+<p><b>Problem found:</b> the API decoded, resized and re-encoded each photo with a pure Go WebP encoder: 6.1 s of one core per photo (about 60 s on 0.1 CPU),
+and 10 uploads at once ran the 512 MB container out of memory.</p>
+<p><b>Change:</b> the back office converts to WebP and limits the longest side to 1600 px before uploading
+(<code>BACKOFFICE.../productos/image-convert.ts</code>); the API only checks it is a complete WebP, at most 1600 px and 10 MB, and stores the same bytes
+(<code>api/internal/shared/imaging/webponly.go</code>). Anything else is rejected with a message asking the user to retry (415, 422 or 413).
+A lossy <code>libwebp</code> build was also measured: 7x faster than the pure Go encoder without a CPU limit, but it still ran out of memory at 10 uploads, so it was not adopted.</p>
+<p><b>Result:</b> one valid upload answers in <span class="big ok">157 ms</span> on 0.1 CPU (before: over 60 s); see the table below for 5, 10 and 25 users.</p></div>
+
+<div class="card"><h3>3. Storefront: one render per cold page (request coalescing)</h3>
+<p><b>Problem found:</b> when many visitors reached the same page before it was cached, every one of them rendered it, and each render makes several calls to the 0.1 CPU API.
+With 100 visitors and an empty cache the storefront had p95 13.5 s and 1.9 % failures.</p>
+<p><b>Change:</b> the Worker middleware (<code>store-a/src/middleware.ts</code>) keeps the in-flight render of each URL; concurrent requests for the same URL wait for it and
+get their own copy. Only plain data is shared between requests (status, headers, bytes), because a Workers <code>Response</code> stream cannot cross requests: the first version shared the
+<code>Response</code> and 4 of 5 concurrent requests failed with "Cannot perform I/O on behalf of a different request".</p>
+<p><b>Result at 100 users, cold cache:</b> <span class="big ok">p95 13.5 s &rarr; 1.7 s, failures 1.9 % &rarr; 0 %</span>, and almost twice the requests served in the same 40 s. At 50 users p95 4.6 s &rarr; 2.5 s.
+Limit: per isolate only; a miss on a new page still costs its own render.</p></div>
+
+<h2>Photo upload: create a product + upload one photo (heavy write)</h2>
+<table><tr><th>Users</th><th>Upload avg</th><th>Upload p95</th><th>Create product p95</th><th>Failed</th><th>What happened</th><th></th></tr><tr class="grp"><td colspan="7">Before: API converts (pure Go, lossless) the JPEG</td></tr><tr><td>5</td><td>5.0 min</td><td>5.0 min</td><td>595 ms</td><td class="bad">27.8 %</td><td class="note">all 5 uploads hit the 300 s timeout</td><td><a href="before-render-heavy-writes-5.html">dashboard</a></td></tr><tr><td>10</td><td>1.5 min</td><td>1.5 min</td><td>1.29 s</td><td class="bad">60.6 %</td><td class="note">API container killed for lack of memory (OOM, exit 137)</td><td><a href="before-render-heavy-writes-10.html">dashboard</a></td></tr><tr class="grp"><td colspan="7">Tried, not adopted: libwebp (lossy) in the API</td></tr><tr><td>1</td><td>13.13 s</td><td>13.89 s</td><td>16 ms</td><td class="ok">0.0 %</td><td class="note">13.1 s per photo</td><td><a href="libwebp-heavy-writes-1.html">dashboard</a></td></tr><tr><td>5</td><td>1.4 min</td><td>1.7 min</td><td>924 ms</td><td class="ok">0.0 %</td><td class="note">all ok but queued on the CPU</td><td><a href="libwebp-heavy-writes-5.html">dashboard</a></td></tr><tr><td>10</td><td>1.3 min</td><td>1.3 min</td><td>954 ms</td><td class="bad">60.6 %</td><td class="note">API killed for lack of memory again (OOM)</td><td><a href="libwebp-heavy-writes-10.html">dashboard</a></td></tr><tr class="grp"><td colspan="7">After: browser converts, API only validates</td></tr><tr><td>5</td><td>109 ms</td><td>330 ms</td><td>210 ms</td><td class="ok">0.0 %</td><td class="note"></td><td><a href="after-render-heavy-writes-5.html">dashboard</a></td></tr><tr><td>10</td><td>201 ms</td><td>567 ms</td><td>528 ms</td><td class="ok">0.0 %</td><td class="note"></td><td><a href="after-render-heavy-writes-10.html">dashboard</a></td></tr><tr><td>25</td><td>505 ms</td><td>1.49 s</td><td>980 ms</td><td class="ok">0.0 %</td><td class="note"></td><td><a href="after-render-heavy-writes-25.html">dashboard</a></td></tr></table>
+
+
+<h2>Real browser: upload a photo through the back office (Chromium, after the change)</h2>
+<p>k6 browser opens the back office, searches a product, attaches a 2400x1800 JPEG (739 KB), presses Guardar and waits until the API lists the stored image.
+The time includes the conversion to WebP in the browser, the upload and the save. Several Chromium windows share the laptop with k6 and the API, so the higher levels measure that contention too.
+Every iteration stored exactly one WebP image (100 % of checks). The 5-browser run missed my own 5 s pass line.</p>
+<table><tr><th>Browsers</th><th>Cycles</th><th>Save to image avg</th><th>p95</th><th>LCP p95</th><th>INP p95</th><th>CLS p95</th><th></th></tr><tr><td>3</td><td>12</td><td>1.79 s</td><td>2.60 s</td><td>2.38 s</td><td>184 ms</td><td>0.39</td><td><a href="after-render-browser-upload-3.html">dashboard</a></td></tr><tr><td>5</td><td>10</td><td>3.88 s</td><td>6.72 s</td><td>3.92 s</td><td>288 ms</td><td>0.39</td><td><a href="after-render-browser-upload-5.html">dashboard</a></td></tr></table>
+
+<h2>Other heavy endpoints (measured on 0.1 CPU, 512 MB)</h2>
+<table><tr><th>Endpoint</th><th>What it does</th><th>Result</th></tr>
+<tr><td>POST /v1/admin/users</td><td>hashes a random password (argon2) and creates the user</td><td>0.4 to 1.2 s per user, 0.82 s on average (5 sequential creates, new cheaper hash). Mail was not configured in the test container, so no invitation email was sent.</td></tr>
+<tr><td>PUT /v1/admin/business-info/assets/:kind</td><td>decodes and re-encodes a PNG (logo, icon, wordmark)</td><td>Measured with the same conversion code in a 0.1 CPU container, without touching the real logos: a logo-like 1139x553 PNG 0.7 s, a 2000x1000 PNG 1.6 s, a worst case 3000x1500 noisy PNG 37 s and 147 MB of memory per call.</td></tr>
+<tr><td>POST and PUT /v1/admin/products</td><td>transaction with its presentation</td><td>light: 16 to 32 ms alone, under 1 s with 10 users at once.</td></tr>
+<tr><td>Not measured</td><td>password reset (hashes twice), change password (verifies and hashes), invitation email</td><td>they use the same hash, which is now about 5 times cheaper.</td></tr></table>
+
+<h2>Before and after: API, back office and storefront (50 and 100 users)</h2>
+<p>Same container (0.1 CPU, 512 MB), same scripts, API restarted before each run. p95 = the time under which 95 % of the requests finished.
+Pass lines: storefront p95 &lt; 500 ms, back office screens p95 &lt; 800 ms, failures &lt; 1 %. Only the real storefront changed in code (improvement 3);
+the API-direct and back office rows are the same code run twice, so their differences are run-to-run noise (up to about 2.5x on this laptop), not improvements or regressions.
+The 150-user level was dropped on purpose: it is beyond what 0.1 CPU is meant to serve.</p>
+<table><tr><th>Users</th><th>p95 before</th><th>p95 after</th><th>Failed before</th><th>Failed after</th><th>Detail</th><th>Dashboards</th></tr><tr class="grp"><td colspan="7">Storefront real: Worker + edge cache, cache emptied before each run (HIT / MISS)</td></tr><tr><td>50</td><td>4.59 s</td><td>2.48 s</td><td class="ok">0.0 %</td><td class="ok">0.0 %</td><td class="note">804 / 90 &rarr; 847 / 87</td><td><a href="before-render-pages-50.html">dashboard</a> <a href="after-render-pages-50.html">dashboard</a></td></tr><tr><td>100</td><td>13.45 s</td><td>1.74 s</td><td class="warn">1.9 %</td><td class="ok">0.0 %</td><td class="note">803 / 184 &rarr; 1763 / 129</td><td><a href="before-render-pages-100.html">dashboard</a> <a href="after-render-pages-100.html">dashboard</a></td></tr><tr class="grp"><td colspan="7">API direct: public catalog endpoints (no Worker, no cache)</td></tr><tr><td>50</td><td>524 ms</td><td>181 ms</td><td class="ok">0.0 %</td><td class="ok">0.0 %</td><td class="note">23/s &rarr; 23/s</td><td><a href="before-render-load-storefront-50.html">dashboard</a> <a href="after-render-load-storefront-50.html">dashboard</a></td></tr><tr><td>100</td><td>799 ms</td><td>612 ms</td><td class="ok">0.0 %</td><td class="ok">0.0 %</td><td class="note">44/s &rarr; 46/s</td><td><a href="before-render-load-storefront-100.html">dashboard</a> <a href="after-render-load-storefront-100.html">dashboard</a></td></tr><tr class="grp"><td colspan="7">Back office screens: each screen is the calls the page makes</td></tr><tr><td>50</td><td>441 ms</td><td>1.10 s</td><td class="ok">0.0 %</td><td class="ok">0.0 %</td><td class="note">40/s &rarr; 40/s</td><td><a href="before-render-load-backoffice-50.html">dashboard</a> <a href="after-render-load-backoffice-50.html">dashboard</a></td></tr><tr><td>100</td><td>1.88 s</td><td>893 ms</td><td class="ok">0.0 %</td><td class="ok">0.0 %</td><td class="note">67/s &rarr; 75/s</td><td><a href="before-render-load-backoffice-100.html">dashboard</a> <a href="after-render-load-backoffice-100.html">dashboard</a></td></tr></table>
+<p><b>Back office, why it stays slow:</b> every endpoint answers in 10 to 40 ms when it is alone (products with <code>limit=100</code> is 46 KB, 57 products;
+reviews 16 KB), so no single call is heavy. With 100 staff members clicking at once the many small calls queue on 0.1 CPU. That is the capacity of the plan,
+not a payload bug, so no code change was made. 100 simultaneous staff members is also far above a real store.</p>
+
+<h2>Still open</h2>
+<ul><li>Back office screens: p95 above the 800 ms pass line at 100 users on 0.1 CPU (capacity, see above).</li>
+<li>Not measured: Neon latency and cold start, Render cold start, the storefront in a real browser, the remaining simple write endpoints. Logo uploads with very large noisy images can use about 150 MB each.</li><li>A WebP that passes the header checks can still be broken inside (a patched header over a short payload): the API validates headers only, by design.</li></ul>
+<p>Raw evidence: every <code>results/*.json</code> (numbers) and <code>results/*.html</code> (k6 dashboard); photos in <code>fixtures/</code>; run scripts in <code>runners/</code>; written analysis in <code>RESULTS.md</code>.</p>
+</body></html>

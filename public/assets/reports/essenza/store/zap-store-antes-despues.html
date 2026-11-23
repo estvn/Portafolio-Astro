@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tienda: comparación ZAP antes y después</title>
+<style>:root{--bg:#fff;--fg:#1b1f24;--muted:#5b6570;--line:#d8dee4;--card:#f6f8fa;--ok:#067647;--okbg:#d1fadf;--bad:#b42318;--badbg:#fee4e2;--warn:#b54708;--warnbg:#fef0c7;--same:#344054;--samebg:#eaecf0}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#9aa4af;--line:#30363d;--card:#161b22;--ok:#8be0ae;--okbg:#12301f;--bad:#ffb4a9;--badbg:#4a1d1a;--warn:#ffd488;--warnbg:#40300f;--same:#c9d1d9;--samebg:#262c36}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 64px}h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:36px 0 8px;padding-top:8px;border-top:1px solid var(--line)}
+.muted{color:var(--muted)}.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:8px 0;min-width:720px}
+th,td{border:1px solid var(--line);padding:7px 10px;vertical-align:top;text-align:left}th{background:var(--card)}.num{text-align:center}.sum{min-width:0;width:auto}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.ok{color:var(--ok);background:var(--okbg)}.real,.new{color:var(--bad);background:var(--badbg)}.part{color:var(--warn);background:var(--warnbg)}.fp,.same{color:var(--same);background:var(--samebg)}
+code{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:13px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}.card b{font-size:26px;margin-right:6px}.note{background:var(--card);border-left:4px solid var(--warn);padding:10px 14px;margin:12px 0;border-radius:4px}</style></head><body><main>
+
+<h1>Tienda (Storefront): ZAP antes y después</h1>
+<p class="muted">ZAP 2.17.0 sobre la tienda compilada para producción (<code>astro build</code> + <code>astro preview</code>, <code>localhost:4321</code>) y la parte pública de la API que usa la tienda (<code>127.0.0.1:8000</code>). Antes: Sat, 21 Nov 2026 20:57:10. Después: Sun, 22 Nov 2026 00:47:58. Este informe solo incluye la tienda; la API y el backoffice tienen el suyo.</p>
+<h2>Resumen</h2>
+<div class="wrap"><table class="sum"><tr><th></th><th>High</th><th>Medium</th><th>Low</th><th>Info</th></tr>
+<tr><td>Antes</td><td class="num">0</td><td class="num">3</td><td class="num">2</td><td class="num">5</td></tr><tr><td>Después</td><td class="num">0</td><td class="num">0</td><td class="num">1</td><td class="num">5</td></tr></table></div>
+<p class="muted">Se cuentan alertas distintas por nombre, tienda y API pública juntas. Solo 4 eran problemas reales y de cabeceras (3 CSP y 1 nosniff); el resto son falsos positivos o informativas. No hubo inyección ni XSS.</p>
+<div class="note"><b>Resultado.</b> Las 4 alertas reales quedaron resueltas con dos rondas de correcciones, y los tests de Playwright que pasan por ZAP pasaron de 33/3/1 (pasan/fallan/omitidos) a 36/0/1. Lo que sigue apareciendo es un falso positivo de baja gravedad y avisos informativos.</div>
+
+<h2>Alertas, una por una</h2>
+<div class="wrap"><table><tr><th>Alerta</th><th>Riesgo</th><th>Antes</th><th>Después</th><th>Estado</th><th>Qué es</th></tr><tr><td>CSP: script-src unsafe-inline</td><td>Medium</td><td class="num">5</td><td class="num">-</td><td><span class="tag ok">Resuelta</span></td><td><span class="tag real">Real</span> Hay scripts inline (islas y JSON-LD). La primera ronda definió script-src con unsafe-inline; la segunda lo reemplazó por hashes SHA-256 de Astro.</td></tr><tr><td>CSP: style-src unsafe-inline</td><td>Medium</td><td class="num">5</td><td class="num">-</td><td><span class="tag ok">Resuelta</span></td><td><span class="tag real">Real</span> Estilos inline de Astro. Se resolvió con hashes; solo queda style-src-attr con unsafe-inline para los atributos style="" (no se pueden hashear).</td></tr><tr><td>CSP: Wildcard Directive</td><td>Medium</td><td class="num">5</td><td class="num">-</td><td><span class="tag ok">Resuelta</span></td><td><span class="tag real">Real</span> La CSP solo traía frame-ancestors, base-uri, object-src y form-action: sin default-src ni script-src, nada limitaba de dónde se cargan JS, imágenes y estilos.</td></tr><tr><td>Timestamp Disclosure - Unix</td><td>Low</td><td class="num">1</td><td class="num">1</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Falso positivo</span> Una constante numérica dentro del JS empaquetado del hero, no una fecha del servidor.</td></tr><tr><td>X-Content-Type-Options Header Missing</td><td>Low</td><td class="num">5</td><td class="num">-</td><td><span class="tag ok">Resuelta</span></td><td><span class="tag real">Real</span> Las páginas sí enviaban nosniff; los archivos /_astro/* (JS y CSS) no.</td></tr><tr><td>Authentication Request Identified</td><td>Informational</td><td class="num">1</td><td class="num">1</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Informativa</span> Es la API pública vista desde la tienda: avisa de que existe un login.</td></tr><tr><td>Modern Web Application</td><td>Informational</td><td class="num">5</td><td class="num">5</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Informativa</span> Solo informa de que es una aplicación web moderna.</td></tr><tr><td>Retrieved from Cache</td><td>Informational</td><td class="num">5</td><td class="num">5</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Informativa</span> Los assets llevan caché inmutable a propósito.</td></tr><tr><td>Session Management Response Identified</td><td>Informational</td><td class="num">1</td><td class="num">1</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Informativa</span> Es la API pública vista desde la tienda: avisa de que el login devuelve un token.</td></tr><tr><td>User Controllable HTML Element Attribute (Potential XSS)</td><td>Informational</td><td class="num">18</td><td class="num">18</td><td><span class="tag same">Sin cambio</span></td><td><span class="tag fp">Falso positivo</span> Probado a mano con un script en los parámetros del catálogo: Astro escapa y no se refleja sin escapar.</td></tr></table></div>
+<p class="muted">Los números son instancias (peticiones donde ZAP vio la alerta).</p>
+
+<h2>Correcciones aplicadas</h2>
+<div class="wrap"><table><tr><th>Ronda</th><th>Problema (reporte)</th><th>Corrección</th><th>Commit</th></tr>
+<tr><td>1</td><td>CSP comodín y con <code>unsafe-inline</code>; nosniff ausente en <code>/_astro/*</code></td><td>CSP con <code>default-src</code>, <code>script-src</code>, <code>style-src</code>, <code>img-src</code>, <code>connect-src</code>, <code>font-src</code> y <code>frame-src</code> en <code>security-headers.ts</code> (con tests); <code>public/_headers</code> con nosniff para <code>/_astro/*</code></td><td><code>fdf9e11</code></td></tr>
+<tr><td>2</td><td>Quedaban CSP: Wildcard (<code>img-src https:</code>) y <code>unsafe-inline</code> en script-src y style-src</td><td>CSP nativa de Astro con hashes SHA-256 de scripts y estilos inline; <code>img-src</code> solo con el origen del bucket de imágenes; <code>style-src-attr 'unsafe-inline'</code> únicamente para atributos <code>style=""</code>. <code>middleware.ts</code> reutiliza la CSP de Astro</td><td><code>7453566</code></td></tr>
+<tr><td>2</td><td>Tests rojos: scroll horizontal en móvil y filtro de la landing; <code>?orden=zzz&amp;genero=zzz</code> daba 200 en vez de 302</td><td>El FAQ con URLs larguísimas ensanchaba la página: <code>overflow-wrap</code> y <code>min-width: 0</code> (FAQ y chips de categoría). La clave de caché ignoraba valores inválidos y servía la caché sin redirigir: se salta la caché para esas URLs (<code>needsListingRedirect</code>, con test)</td><td><code>7453566</code></td></tr></table></div>
+
+<h2>Cómo se ejecutó cada prueba</h2>
+<div class="wrap"><table><tr><th></th><th>Antes</th><th>Después</th></tr>
+<tr><td>Playwright por ZAP (tienda y tienda móvil)</td><td>33 pasan, 3 fallan, 1 omitido</td><td><b>36 pasan, 0 fallan, 1 omitido</b></td></tr>
+<tr><td>Active Scan de la tienda (peticiones)</td><td>3 301</td><td>3 420</td></tr>
+<tr><td>Active Scan de la API pública (peticiones)</td><td>3 919</td><td>3 919</td></tr></table></div>
+<ul>
+<li>Los 3 fallos del "antes" eran reales y fallaban también sin ZAP; se corrigieron en la aplicación.</li>
+<li>El test del logo del header que falló en la ronda 1 fallaba por los datos de prueba (un PNG de 1×1 píxel como wordmark); el script de restauración ahora sube las imágenes reales de marca.</li>
+<li>Cada escaneo partió de la misma base de datos restaurada.</li>
+</ul>
+
+<h2>Límites</h2>
+<ul>
+<li>ZAP no analiza el DOM (XSS renderizado) ni la autorización por rol o tenant.</li>
+<li>El preview local no pasa por Cloudflare: las cabeceras de borde (HSTS, <code>_headers</code>) pueden diferir en producción.</li>
+<li>Los orígenes de la CSP estaban fijados a <code>localhost</code> para la prueba local; en producción salen de las variables <code>PUBLIC_*</code>.</li>
+<li>Solo se cubrió lo que ejercita la suite de Playwright y lo que la araña descubrió (62 URLs de la tienda y 14 de la API pública, en el "antes").</li>
+<li>Los reportes completos de ZAP no se publican porque contienen el token de una cuenta de prueba.</li>
+</ul>
+</main></body></html>

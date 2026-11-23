@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calidad de código: API (Go + Fiber)</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#59636e; --card:#f6f8fa; --line:#d1d9e0; --accent:#0969da; --crit:#cf222e; --maj:#bc4c00; --min:#7d6a00; --ok:#1a7f37; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#151b23; --line:#30363d; --accent:#4493f8; --crit:#ff7b72; --maj:#ffa657; --min:#e3b341; --ok:#3fb950; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; } h2 { font-size:20px; margin:40px 0 12px; padding-top:8px; border-top:1px solid var(--line); }
+  .lead { color:var(--muted); margin:0 0 16px; } .note { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:13.5px; margin:12px 0; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; margin:12px 0; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 12px; } .kpi b { display:block; font-size:22px; } .kpi span { color:var(--muted); font-size:12px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; vertical-align:top; padding:8px 10px; border-bottom:1px solid var(--line); font-size:13.5px; } th { color:var(--muted); font-weight:600; } td.num { text-align:center; font-weight:600; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; word-break:break-all; } code.rule { color:var(--muted); }
+  .tag { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:0 8px; font-size:11px; color:var(--muted); }
+  .tag.critical { color:var(--crit); border-color:var(--crit); } .tag.major { color:var(--maj); border-color:var(--maj); } .tag.minor { color:var(--min); border-color:var(--min); } .tag.ok { color:var(--ok); border-color:var(--ok); }
+  .bar { display:inline-block; width:160px; height:10px; background:var(--line); border-radius:5px; vertical-align:middle; margin-right:8px; } .bar i { display:block; height:100%; border-radius:5px; background:var(--accent); }
+  .flow { display:flex; gap:24px; flex-wrap:wrap; align-items:center; margin:8px 0 4px; } .flow div { font-size:13px; }
+  @media (max-width:700px) { th:nth-child(2), td:nth-child(2) { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>API (Go + Fiber)</h1>
+  <p class="lead">Proyecto Sonar <code>api-saas-stores</code> · antes: 2026-11-21 · después: 2026-11-21 · SonarQube Community Build 26.11, reglas "Sonar way".</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>7 → 0</b><span>Issues abiertos</span></div>
+    <div class="kpi"><b>2</b><span>Corregidos con código</span></div>
+    <div class="kpi"><b>5</b><span>Excepciones justificadas</span></div>
+    <div class="kpi"><b>OK</b><span>Quality Gate (antes OK)</span></div>
+  </div>
+  <div class="flow">
+    <div>Antes <span class="bar"><i style="width:100%"></i></span> <b>7</b></div>
+    <div>Después <span class="bar"><i style="width:2%"></i></span> <b>0</b></div>
+  </div>
+  <div class="note"><b>Lectura honesta:</b> de los 7 issues, 2 se corrigieron cambiando código y 5 se dieron por excepción justificada. Una excepción hace desaparecer el aviso del reporte, pero no es una corrección: el motivo está escrito en cada fila de abajo y en <code>sonar-project.properties</code>. Sonar es una regla estática, no un juez: cada aviso se revisó contra el código real antes de decidir.</div>
+
+  <h2>1. Antes → después</h2>
+  <table><thead><tr><th>Medida</th><th>Antes</th><th>Después</th></tr></thead><tbody><tr><td>Issues abiertos</td><td class="num">7</td><td class="num">0</td></tr><tr><td>Bugs</td><td class="num">2</td><td class="num">0</td></tr><tr><td>Vulnerabilidades</td><td class="num">5</td><td class="num">0</td></tr><tr><td>Code smells</td><td class="num">0</td><td class="num">0</td></tr><tr><td>Rating de fiabilidad</td><td class="num">C</td><td class="num">A</td></tr><tr><td>Rating de seguridad</td><td class="num">C</td><td class="num">A</td></tr><tr><td>Rating de mantenibilidad</td><td class="num">A</td><td class="num">A</td></tr><tr><td>Cobertura</td><td class="num">0.0 %</td><td class="num">0.0 %</td></tr><tr><td>Duplicación</td><td class="num">0.2 %</td><td class="num">0.2 %</td></tr><tr><td>Líneas de código</td><td class="num">12.095</td><td class="num">12.095</td></tr><tr><td>Quality Gate</td><td class="num">OK</td><td class="num">OK</td></tr></tbody></table>
+
+  <h2>2. Antes: lo que encontró Sonar y qué se hizo con cada caso</h2>
+  <table><thead><tr><th>Dónde</th><th>Problema</th><th>Resultado</th></tr></thead><tbody>
+    <tr><td><code>internal/features/auth/usecases_test.go:245</code><br><code class="rule">go:S1764</code> <span class="tag major">MAJOR</span></td>
+    <td>Correct one of the identical sub-expressions on both sides of this operator.</td>
+    <td><span class="tag ok">Corregido</span> <b>A1</b><br>Las llamadas repetidas se guardan en variables con nombre; mismo test, intención explícita.</td></tr>
+    <tr><td><code>internal/shared/ratelimit/ratelimit_test.go:53</code><br><code class="rule">go:S1764</code> <span class="tag major">MAJOR</span></td>
+    <td>Correct one of the identical sub-expressions on both sides of this operator.</td>
+    <td><span class="tag ok">Corregido</span> <b>A1</b><br>Las llamadas repetidas se guardan en variables con nombre; mismo test, intención explícita.</td></tr>
+    <tr><td><code>e2e/scripts/make_fixtures.py:20</code><br><code class="rule">python:S2245</code> <span class="tag major">MAJOR</span></td>
+    <td>Make sure that using this pseudorandom number generator is safe here.</td>
+    <td><span class="tag minor">Excepción</span> <b>A2</b><br>Generador con semilla fija para fixtures de e2e, sin valor de seguridad. Excepción en sonar-project.properties.</td></tr>
+    <tr><td><code>e2e/scripts/make_fixtures.py:20</code><br><code class="rule">python:S2245</code> <span class="tag major">MAJOR</span></td>
+    <td>Make sure that using this pseudorandom number generator is safe here.</td>
+    <td><span class="tag minor">Excepción</span> <b>A2</b><br>Generador con semilla fija para fixtures de e2e, sin valor de seguridad. Excepción en sonar-project.properties.</td></tr>
+    <tr><td><code>e2e/scripts/make_fixtures.py:21</code><br><code class="rule">python:S2245</code> <span class="tag major">MAJOR</span></td>
+    <td>Make sure that using this pseudorandom number generator is safe here.</td>
+    <td><span class="tag minor">Excepción</span> <b>A2</b><br>Generador con semilla fija para fixtures de e2e, sin valor de seguridad. Excepción en sonar-project.properties.</td></tr>
+    <tr><td><code>e2e/scripts/make_fixtures.py:22</code><br><code class="rule">python:S2245</code> <span class="tag major">MAJOR</span></td>
+    <td>Make sure that using this pseudorandom number generator is safe here.</td>
+    <td><span class="tag minor">Excepción</span> <b>A2</b><br>Generador con semilla fija para fixtures de e2e, sin valor de seguridad. Excepción en sonar-project.properties.</td></tr>
+    <tr><td><code>e2e/scripts/make_fixtures.py:56</code><br><code class="rule">python:S2245</code> <span class="tag major">MAJOR</span></td>
+    <td>Make sure that using this pseudorandom number generator is safe here.</td>
+    <td><span class="tag minor">Excepción</span> <b>A2</b><br>Generador con semilla fija para fixtures de e2e, sin valor de seguridad. Excepción en sonar-project.properties.</td></tr></tbody></table>
+
+  <h2>3. Medidas tomadas</h2>
+  <table><thead><tr><th>ID</th><th>Tipo</th><th>Qué se hizo</th><th>Dónde</th></tr></thead><tbody>
+    <tr><td><b>A1</b></td><td><span class="tag ok">Corrección</span><br><code class="rule">go:S1764</code></td><td>Tests de hash de código de reinicio y de rate limit: se nombran las llamadas repetidas en variables.</td><td><code>internal/features/auth/usecases_test.go, internal/shared/ratelimit/ratelimit_test.go</code></td></tr>
+    <tr><td><b>A2</b></td><td><span class="tag minor">Excepción</span><br><code class="rule">python:S2245</code></td><td>El script de fixtures usa random con semilla fija para generar siempre las mismas imágenes. Se declara la excepción en el properties, solo para e2e/scripts.</td><td><code>sonar-project.properties</code></td></tr></tbody></table>
+  <div class="note"><b>Pruebas tras los cambios.</b> go test de los paquetes tocados en verde (auth y ratelimit). El resto de la suite del API ya tenía 4 tests de integración fallando antes de esta ronda (política de contraseñas); no se tocaron.</div>
+
+  <h2>4. Después: Quality Gate</h2>
+  <table><thead><tr><th>Condición</th><th>Umbral</th><th>Valor</th><th>Estado</th></tr></thead><tbody><tr><td>Duplicación del código nuevo</td><td>máximo 3</td><td class="num">0.0</td><td><span class="tag ok">OK</span></td></tr><tr><td>Issues nuevos</td><td>máximo 0</td><td class="num">0</td><td><span class="tag ok">OK</span></td></tr></tbody></table>
+  <div class="note">El gate evalúa el código nuevo de este análisis y pasa.</div>
+  <p class="lead">Los security hotspots no se pudieron detallar con el token de análisis; el conteo de Sonar es 0.</p>
+</main>
+</body>
+</html>

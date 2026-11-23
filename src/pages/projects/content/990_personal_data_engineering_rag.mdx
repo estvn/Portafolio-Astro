@@ -1,0 +1,175 @@
+---
+title: 'RAG sobre Google Cloud Data Analytics + servidor MCP'
+description: 'Sistema RAG que corre en una laptop sin GPU sobre el material de dos cursos (GCP Data Analytics y Power BI): chunking semántico, bge-m3 en ONNX, búsqueda híbrida en PostgreSQL + pgvector, evaluación con 219 preguntas y un servidor MCP que expone la búsqueda a Claude Code.'
+title_en: 'RAG over Google Cloud Data Analytics + MCP server'
+description_en: 'A RAG system that runs on a GPU-less laptop over the material of two courses (GCP Data Analytics and Power BI): semantic chunking, bge-m3 on ONNX, hybrid search in PostgreSQL + pgvector, evaluation with 219 questions and an MCP server that exposes the search to Claude Code.'
+image:
+  url: '/assets/img/projects/data-engineering-rag/rag-arquitectura.png'
+  alt: 'Arquitectura del sistema RAG: cliente, servidor MCP, librería RAG, base de datos y construcción del índice'
+technologies: ["Python", "PostgreSQL", "pgvector", "ONNX Runtime", "bge-m3", "multilingual-e5-small", "FastMCP", "Podman", "GitHub Actions", "RapidOCR", "pymupdf4llm", "pytest"]
+url: 'data-engineering-rag'
+category: 'personal'
+links:
+  github:
+    - name: "Repositorio RAG (ingesta, recuperación y evaluación)"
+      url: "https://github.com/estvn/GCP-ANALYTICS_RAG"
+    - name: "Repositorio del servidor MCP"
+      url: "https://github.com/estvn/GCP-ANALYTICS_RAG_MCP"
+  live: ''
+---
+
+<div data-lang="es">
+
+## Resumen
+
+Quería que un modelo de lenguaje responda según lo que enseña un curso concreto, citando el archivo de origen, sin API de pago ni GPU. Construí un sistema de recuperación (la mitad de recuperación de un RAG) sobre el curso **Google Cloud Data Analytics** (unos 310 archivos en español e inglés) y un curso de **Power BI**. Dada una pregunta, devuelve los pasajes que la responden; Claude Code redacta la respuesta. Corre en una laptop con CPU, y un servidor **MCP** propio expone la búsqueda como herramienta.
+
+## Cómo funciona, paso a paso
+
+![Arquitectura RAG](/assets/img/projects/data-engineering-rag/rag-arquitectura.png)
+
+*Vista general: el cliente pregunta, el servidor MCP busca, la base devuelve los pasajes.*
+
+1. **Preparar el material.** Los PDF se convierten a Markdown para conservar títulos y estructura. Las diapositivas sin capa de texto (187 páginas) pasan por OCR y el texto leído se agrega al archivo.
+2. **Partir en chunks.** Un chunk es un trozo de texto lo bastante chico para responder una pregunta puntual. Se corta donde cambia el significado, en cada encabezado `#` y como máximo a 440 tokens; cada chunk conserva la ruta de encabezados de donde salió.
+3. **Embeddings.** Cada chunk se convierte en una lista de 1024 números (un vector) con el modelo bge-m3, que entiende varios idiomas. Textos con significado parecido quedan con vectores parecidos. Corre en CPU, en formato ONNX int8.
+4. **Guardar en PostgreSQL + pgvector.** Una sola tabla guarda el texto, el vector (con un índice HNSW para buscar por significado) y las palabras (con un índice de texto completo para buscar términos exactos). Quedaron 1.728 chunks de 417 documentos.
+5. **Buscar.** La pregunta se busca dos veces, por significado y por palabras, tanto en su idioma original como en su traducción. Las listas se fusionan con RRF, que suma puntos por posición, y se devuelven los 30 mejores chunks con su archivo de origen.
+
+![Flujo del código](/assets/img/projects/data-engineering-rag/code-flow.png)
+
+*El código en tres paquetes: la ingesta escribe el índice, la recuperación lo lee y la evaluación lo mide.*
+
+El índice se construye una vez y se publica como imágenes de contenedor (`ghcr.io/estvn/gcp-rag-db`), que restauran la base completa con un solo `podman run`.
+
+![Arquitectura completa del sistema](/assets/img/projects/data-engineering-rag/system-architecture.png)
+
+*El sistema completo, desde la pregunta en Claude Code hasta los vectores, y cómo se construye y publica el índice.*
+
+## Cómo se usa
+
+El modelo de lenguaje no responde de memoria: llama a una herramienta MCP, `gcp_rag_search_course`, con tres datos: la `question`, su traducción al otro idioma (la escribe el propio modelo, así no hace falta un modelo de traducción) y cuántos chunks quiere (30 por defecto). Recibe los chunks ordenados, cada uno con su archivo y sus encabezados, y redacta la respuesta citándolos. Una segunda herramienta, `gcp_rag_check_setup`, revisa si el modelo y la base están listos y dice qué falta.
+
+![Arquitectura del servidor MCP](/assets/img/projects/data-engineering-rag/mcp-architecture.png)
+
+*El servidor MCP: un proceso por sesión con dos herramientas de solo lectura; carga el modelo en la primera búsqueda y lo reutiliza.*
+
+Ejemplos reales de llamadas (mejor chunk devuelto):
+
+- «¿Para qué sirve Dataproc?» devuelve `022_HOW_TO_MANAGE_DATAPROC_CLUSTERS.md`.
+- «¿Cómo se crea un panel de control en Looker Studio?» devuelve `014_GUIDE_LOOKER_STUDIO.md`.
+
+Como el modelo queda cargado en memoria (unos 1,1 GB), la primera pregunta tarda 3,3 s y las siguientes entre 0,11 y 0,14 s.
+
+## Cómo se evaluó
+
+Se midió si el pasaje correcto aparece entre los 30 chunks devueltos, con preguntas escritas por mí (180 sobre GCP y 39 sobre Power BI), cada una corrida una vez:
+
+| Conjunto | bge-m3 | e5-small |
+|---|---|---|
+| GCP (180 preguntas) | 175 (97%) | 168 (93%) |
+| Power BI (39 preguntas) | 38 (97%) | 35 (90%) |
+| **Total (219)** | **213 (97%)** | **203 (93%)** |
+
+## Logros clave
+
+- <strong>RAG sobre material de dos cursos</strong>: índice final de 417 documentos (310 de GCP y 107 de Power BI), publicado como imágenes de contenedor que restauran la base con un solo `podman run`.
+- <strong>Todo local</strong>: bge-m3 (opción ligera: multilingual-e5-small) en ONNX int8 sobre CPU, con búsqueda híbrida en PostgreSQL + pgvector; el material no se envía a terceros.
+- <strong>Servidor MCP</strong> con dos herramientas y respuestas en una fracción de segundo.
+- <strong>Cada decisión salió de un experimento medido</strong>: 41 entradas en un registro que conserva los errores, no solo los éxitos.
+
+## Decisiones clave
+
+- **Chunking semántico con cortes en encabezados:** respondió más preguntas y devuelve menos texto que las alternativas.
+- **bge-m3 sobre e5-small:** con 30 chunks responde 176 de 180 preguntas contra 165.
+- **Búsqueda híbrida + traducción fusionada:** rescata las preguntas que cruzan de idioma.
+- **Sin reranker:** en esta CPU sumaba de 11 a 65 s por consulta; lo reemplazan la fusión RRF y devolver 30 chunks.
+
+## Límites / Pendientes
+
+- Conjuntos de evaluación chicos (130 a 219 preguntas): las diferencias pequeñas son ruido.
+- Se mide que el pasaje llegue, no que la respuesta final sea buena; falta una evaluación de extremo a extremo.
+- Todavía no se probó el servidor con preguntas reales en español desde Claude Code.
+- El OCR no mejoró ninguna medición.
+- Guardar el nombre del modelo de embeddings en la base de datos.
+- Hacer reproducible desde el repositorio la evaluación con el curso completo.
+
+</div>
+
+<div data-lang="en">
+
+## Summary
+
+I wanted a language model to answer according to what a specific course teaches, citing the source file, with no paid API and no GPU. I built a retrieval system (the retrieval half of a RAG) over the **Google Cloud Data Analytics** course (about 310 files in Spanish and English) and a **Power BI** course. Given a question, it returns the passages that answer it; Claude Code writes the answer. It runs on a CPU-only laptop, and a custom **MCP** server exposes the search as a tool.
+
+## How it works, step by step
+
+![RAG architecture](/assets/img/projects/data-engineering-rag/rag-arquitectura.png)
+
+*Overview: the client asks, the MCP server searches, the database returns the passages.*
+
+1. **Prepare the material.** PDFs are converted to Markdown to keep headings and structure. Slides with no text layer (187 pages) go through OCR and the text read is appended to the file.
+2. **Split into chunks.** A chunk is a piece of text small enough to answer one specific question. Cuts happen where the meaning shifts, at every `#` header and at 440 tokens at most; each chunk keeps the header path it came from.
+3. **Embeddings.** Each chunk becomes a list of 1024 numbers (a vector) using the bge-m3 model, which understands several languages. Texts with similar meaning get similar vectors. It runs on CPU as int8 ONNX.
+4. **Store in PostgreSQL + pgvector.** One table holds the text, the vector (with an HNSW index to search by meaning) and the words (with a full-text index to search exact terms). The result is 1,728 chunks from 417 documents.
+5. **Search.** The question is searched twice, by meaning and by keywords, both in its original language and in its translation. The lists are fused with RRF, which adds up points by position, and the best 30 chunks are returned with their source file.
+
+![Code flow](/assets/img/projects/data-engineering-rag/code-flow.png)
+
+*The code in three packages: ingestion writes the index, retrieval reads it and evaluation measures it.*
+
+The index is built once and published as container images (`ghcr.io/estvn/gcp-rag-db`), which restore the whole database with a single `podman run`.
+
+![Full system architecture](/assets/img/projects/data-engineering-rag/system-architecture.png)
+
+*The whole system, from the question in Claude Code to the vectors, and how the index is built and published.*
+
+## How it is used
+
+The language model does not answer from memory: it calls an MCP tool, `gcp_rag_search_course`, with three inputs: the `question`, its translation into the other language (written by the model itself, so no translation model is needed) and how many chunks it wants (30 by default). It gets the chunks in order, each with its file and headers, and writes the answer citing them. A second tool, `gcp_rag_check_setup`, checks whether the model and the database are ready and says what is missing.
+
+![MCP server architecture](/assets/img/projects/data-engineering-rag/mcp-architecture.png)
+
+*The MCP server: one process per session with two read-only tools; it loads the model on the first search and reuses it.*
+
+Real example calls (best chunk returned):
+
+- "¿Para qué sirve Dataproc?" returns `022_HOW_TO_MANAGE_DATAPROC_CLUSTERS.md`.
+- "¿Cómo se crea un panel de control en Looker Studio?" returns `014_GUIDE_LOOKER_STUDIO.md`.
+
+Because the model stays loaded in memory (about 1.1 GB), the first question takes 3.3 s and later ones 0.11 to 0.14 s.
+
+## How it was evaluated
+
+I measured whether the correct passage is among the 30 chunks returned, with questions I wrote (180 on GCP and 39 on Power BI), each run once:
+
+| Set | bge-m3 | e5-small |
+|---|---|---|
+| GCP (180 questions) | 175 (97%) | 168 (93%) |
+| Power BI (39 questions) | 38 (97%) | 35 (90%) |
+| **Total (219)** | **213 (97%)** | **203 (93%)** |
+
+## Key achievements
+
+- <strong>RAG over two courses</strong>: final index of 417 documents (310 GCP, 107 Power BI), published as container images that restore the database with a single `podman run`.
+- <strong>Fully local</strong>: bge-m3 (light option: multilingual-e5-small) as int8 ONNX on CPU, with hybrid search in PostgreSQL + pgvector; the material is sent to no third party.
+- <strong>MCP server</strong> with two tools and answers in a fraction of a second.
+- <strong>Every decision came from a measured experiment</strong>: 41 ledger entries that keep the mistakes, not only the wins.
+
+## Key decisions
+
+- **Semantic chunking with header cuts:** it answered more questions and returns less text than the alternatives.
+- **bge-m3 over e5-small:** with 30 chunks it answers 176 of 180 questions against 165.
+- **Hybrid search + fused translation:** rescues questions that cross languages.
+- **No reranker:** on this CPU it added 11 to 65 s per query; RRF fusion and returning 30 chunks take its place.
+
+## Limits / Pending
+
+- Small evaluation sets (130 to 219 questions): small differences are noise.
+- It measures that the passage arrives, not that the final answer is good; an end-to-end evaluation is missing.
+- The server has not yet been tried with real Spanish questions from Claude Code.
+- The OCR did not improve any measurement.
+- Store the embedding model name in the database.
+- Make the full-course evaluation reproducible from the repository.
+
+</div>

@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calidad de código: propuestas de corrección</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#59636e; --card:#f6f8fa; --line:#d1d9e0; --accent:#0969da; --crit:#cf222e; --maj:#bc4c00; --min:#7d6a00; --ok:#1a7f37; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#151b23; --line:#30363d; --accent:#4493f8; --crit:#ff7b72; --maj:#ffa657; --min:#e3b341; --ok:#3fb950; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; } h2 { font-size:21px; margin:44px 0 14px; padding-top:8px; border-top:1px solid var(--line); }
+  h3 { font-size:17px; margin:0 0 6px; } h4 { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:14px 0 4px; }
+  p { margin:4px 0; } .lead { color:var(--muted); }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px 12px; overflow:auto; margin:4px 0; } pre code { font-size:12.5px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; vertical-align:top; padding:7px 10px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  th { color:var(--muted); font-weight:600; } td.num { text-align:center; }
+  table.loc td:first-child { white-space:nowrap; width:1%; } table.loc code { word-break:break-all; }
+  .g { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:8px; padding:14px 16px; margin:16px 0; }
+  .g.suppress { border-left-color:var(--min); } .g.verify { border-left-color:var(--maj); }
+  .id { display:inline-block; background:var(--accent); color:#fff; border-radius:6px; padding:0 8px; font-size:13px; margin-right:6px; }
+  .tag { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:0 8px; font-size:11px; color:var(--muted); }
+  .tag.critical { color:var(--crit); border-color:var(--crit); } .tag.major { color:var(--maj); border-color:var(--maj); } .tag.minor { color:var(--min); border-color:var(--min); }
+  .tag.act-fix { color:var(--ok); border-color:var(--ok); } .tag.act-suppress { color:var(--min); border-color:var(--min); } .tag.act-verify { color:var(--maj); border-color:var(--maj); }
+  .res { margin-top:10px; } .note { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:13.5px; }
+  nav a { color:var(--accent); margin-right:14px; } a { color:var(--accent); }
+  @media (max-width:700px) { table.sum th:nth-child(4), table.sum td:nth-child(4) { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Propuestas de corrección</h1>
+  <p class="lead">Cada propuesta cita la regla de SonarQube, el archivo y la línea (leída del código actual) y la técnica. Nada de esto está aplicado todavía: es el plan para aprobar.</p>
+  <div class="note">
+    <b>Cómo leerlo.</b> <i>Corregir</i> cambia el código. <i>Suprimir</i> deja el código igual y documenta por qué la alerta no aplica (el aviso desaparece del reporte, pero no es una corrección). <i>Verificar</i> necesita revisar el componente completo antes de decidir.
+    <b>F5</b> (tamaño de página 12) y <b>B3</b> (Promises sin manejar) son los que arreglan comportamiento real y van primero.
+  </div>
+  <h2>Resumen</h2>
+  <table class="sum"><thead><tr><th>ID</th><th>Proyecto</th><th>Regla</th><th>Tema</th><th>Casos</th><th>Acción</th><th>Prioridad</th><th>Esfuerzo</th></tr></thead><tbody>
+  <tr><td><a href="#A1"><b>A1</b></a></td><td>API</td><td><code>go:S1764</code></td>
+  <td>Operandos idénticos en dos tests</td><td class="num">2</td><td>Corregir</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#A2"><b>A2</b></a></td><td>API</td><td><code>python:S2245</code></td>
+  <td>Generador pseudoaleatorio en el script de fixtures de e2e</td><td class="num">4</td><td>Suprimir con justificación</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#F1"><b>F1</b></a></td><td>Storefront</td><td><code>typescript:S8786</code></td>
+  <td>Regex con backtracking (quitar "/" o puntuación al final)</td><td class="num">6</td><td>Corregir</td><td>Media</td><td>S</td></tr>
+  <tr><td><a href="#F2"><b>F2</b></a></td><td>Storefront</td><td><code>typescript:S8786</code></td>
+  <td>Regex de correo con backtracking</td><td class="num">1</td><td>Corregir</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#F3"><b>F3</b></a></td><td>Storefront</td><td><code>typescript:S2871</code></td>
+  <td><code>sort()</code> sin función de comparación</td><td class="num">1</td><td>Corregir</td><td>Media</td><td>XS</td></tr>
+  <tr><td><a href="#F4"><b>F4</b></a></td><td>Storefront</td><td><code>typescript:S6544</code></td>
+  <td>Promise usada como condición</td><td class="num">1</td><td>Corregir</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#F5"><b>F5</b></a></td><td>Storefront</td><td><code>typescript:S7773</code></td>
+  <td>Aviso de estilo que esconde un bug real: <code>/^[1-9]d?$/</code></td><td class="num">1</td><td>Corregir</td><td>Alta</td><td>XS</td></tr>
+  <tr><td><a href="#F6"><b>F6</b></a></td><td>Storefront</td><td><code>typescript:S2245</code></td>
+  <td><code>Math.random()</code> en los identificadores de tracking</td><td class="num">2</td><td>Corregir</td><td>Baja</td><td>S</td></tr>
+  <tr><td><a href="#F7"><b>F7</b></a></td><td>Storefront</td><td><code>typescript:S4822</code></td>
+  <td><code>try/catch</code> que no captura el rechazo de la Promise</td><td class="num">1</td><td>Corregir</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#B1"><b>B1</b></a></td><td>Back office</td><td><code>typescript:S8786</code></td>
+  <td>Regex con backtracking al recortar "/", "-" y puntos</td><td class="num">6</td><td>Corregir</td><td>Media</td><td>M</td></tr>
+  <tr><td><a href="#B2"><b>B2</b></a></td><td>Back office</td><td><code>typescript:S8786</code></td>
+  <td>La misma regex de correo copiada en 4 archivos</td><td class="num">4</td><td>Corregir</td><td>Media</td><td>S</td></tr>
+  <tr><td><a href="#B3"><b>B3</b></a></td><td>Back office</td><td><code>typescript:S9383</code></td>
+  <td><code>navigate()</code> devuelve una Promise que nadie espera</td><td class="num">2</td><td>Corregir</td><td>Alta</td><td>XS</td></tr>
+  <tr><td><a href="#B4"><b>B4</b></a></td><td>Back office</td><td><code>typescript:S7773</code></td>
+  <td><code>parseInt</code> global</td><td class="num">2</td><td>Corregir</td><td>Baja</td><td>XS</td></tr>
+  <tr><td><a href="#B5"><b>B5</b></a></td><td>Back office</td><td><code>typescript:S6845</code></td>
+  <td><code>tabIndex</code> en elementos no interactivos</td><td class="num">3</td><td>Verificar y decidir</td><td>Media</td><td>S</td></tr>
+  <tr><td><a href="#B6"><b>B6</b></a></td><td>Back office</td><td><code>typescript:S6852 / S6825</code></td>
+  <td>Roles ARIA y filas ocultas</td><td class="num">3</td><td>Verificar y decidir</td><td>Media</td><td>S</td></tr></tbody></table>
+  <p class="lead" style="margin-top:10px">Total: 39 ubicaciones; el conteo de issues de Sonar es 40 porque <code>make_fixtures.py:20</code> tiene dos avisos en la misma línea.</p>
+  <nav style="margin-top:8px"><a href="#api">API (Go + Fiber)</a><a href="#frontoffice">Storefront (Astro, store-a)</a><a href="#backoffice">Back office (React + Vite)</a></nav>
+  
+  <section id="api"><h2>API (Go + Fiber)</h2>
+  <article id="A1" class="g fix">
+    <h3><span class="id">A1</span> Operandos idénticos en dos tests</h3>
+    <p class="meta"><code>go:S1764</code> <span class="tag major">MAJOR</span> <span class="tag">BUG</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>Sonar ve la misma expresión a ambos lados de un operador. En los dos casos la repetición es intencional: uno prueba que el hash es determinista (llamar dos veces a <code>HashResetCode</code> con los mismos datos) y el otro llama dos veces a <code>Allow</code>, que tiene estado (consume cupo). El código de producción no está afectado.</p>
+    <h4>Dónde (2)</h4>
+    <table class="loc"><tr><td><code>internal/features/auth/usecases_test.go:245</code></td><td><code>first, second := HashResetCode(&quot;u1&quot;, &quot;123456&quot;), HashResetCode(&quot;u1&quot;, &quot;123456&quot;)</code></td></tr><tr><td><code>internal/shared/ratelimit/ratelimit_test.go:53</code></td><td><code>a, b, c := l.Allow(&quot;k&quot;, lim), l.Allow(&quot;k&quot;, lim), l.Allow(&quot;k&quot;, lim)</code></td></tr></table>
+    <h4>Técnica</h4><p>Guardar cada llamada en una variable con nombre y comparar las variables. Misma prueba, intención explícita, sin falso positivo.</p>
+    <h4>Propuesta</h4><pre><code>// usecases_test.go:245
+first, second := HashResetCode(&quot;u1&quot;, &quot;123456&quot;), HashResetCode(&quot;u1&quot;, &quot;123456&quot;)
+if string(first) != string(second) || len(first) != 32 {
+    t.Fatal(&quot;hash must be deterministic and 32 bytes&quot;)
+}
+
+// ratelimit_test.go:53
+a, b, c := l.Allow(&quot;k&quot;, lim), l.Allow(&quot;k&quot;, lim), l.Allow(&quot;k&quot;, lim)
+if !a || !b || c {
+    t.Fatal(&quot;per second limit&quot;)
+}</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno: solo tests. Verificar con <code>go test ./internal/features/auth ./internal/shared/ratelimit</code>.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 2 issues.</p>
+  </article>
+  <article id="A2" class="g suppress">
+    <h3><span class="id">A2</span> Generador pseudoaleatorio en el script de fixtures de e2e</h3>
+    <p class="meta"><code>python:S2245</code> <span class="tag major">MAJOR</span> <span class="tag">VULNERABILITY</span> <span class="tag act-suppress">Suprimir con justificación</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>El script crea imágenes de prueba con <code>random.Random(7)</code> y <code>random.Random(1)</code>, con semilla fija, para que los fixtures salgan idénticos cada vez. No genera tokens, claves ni nada secreto: es un falso positivo de contexto. Cambiarlo a un generador criptográfico rompería la reproducibilidad de los fixtures.</p>
+    <h4>Dónde (4)</h4>
+    <table class="loc"><tr><td><code>e2e/scripts/make_fixtures.py:20</code></td><td><code>x, y = rng.randrange(width), rng.randrange(height)</code></td></tr><tr><td><code>e2e/scripts/make_fixtures.py:21</code></td><td><code>r = rng.randrange(30, max(60, width // 8))</code></td></tr><tr><td><code>e2e/scripts/make_fixtures.py:22</code></td><td><code>draw.ellipse((x - r, y - r, x + r, y + r), fill=tuple(rng.randrange(256) for _ in range(3)))</code></td></tr><tr><td><code>e2e/scripts/make_fixtures.py:56</code></td><td><code>b&quot;\xff\xd8\xff\xe0&quot; + random.Random(1).randbytes(11 * 1024 * 1024)</code></td></tr></table>
+    <h4>Técnica</h4><p>No tocar el código. Suprimir la regla solo para esa carpeta, de forma declarativa y versionada en <code>sonar-project.properties</code> (más auditable que un comentario suelto). Esto elimina el aviso del reporte, pero no es una corrección: queda documentado como excepción justificada.</p>
+    <h4>Propuesta</h4><pre><code># api/sonar-project.properties
+sonar.issue.ignore.multicriteria=e1
+sonar.issue.ignore.multicriteria.e1.ruleKey=python:S2245
+sonar.issue.ignore.multicriteria.e1.resourceKey=e2e/scripts/**</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno para el producto. Se pierde la alerta si alguien usara <code>random</code> con fines de seguridad dentro de <code>e2e/scripts</code>.</p>
+    <p class="res"><b>Resultado esperado:</b> Suprime 5 issues (4 líneas; la 20 tiene dos).</p>
+  </article></section>
+  <section id="frontoffice"><h2>Storefront (Astro, store-a)</h2>
+  <article id="F1" class="g fix">
+    <h3><span class="id">F1</span> Regex con backtracking (quitar "/" o puntuación al final)</h3>
+    <p class="meta"><code>typescript:S8786</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Media</span> <span class="tag">Esfuerzo S</span></p>
+    <h4>Problema</h4><p>Patrones como <code>/\/+$/</code> se evalúan desde cada posición de la cadena: con muchas barras seguidas que no están al final el tiempo crece al cuadrado. En <code>env.ts</code>, <code>sitemap.ts</code>, <code>share-image.ts</code> y <code>tracking.ts:315</code> la entrada es configuración o una URL propia, así que el riesgo real es bajo; en <code>mappers.ts:70</code> la entrada es texto que viene de la API.</p>
+    <h4>Dónde (6)</h4>
+    <table class="loc"><tr><td><code>src/lib/env.ts:28</code></td><td><code></code></td></tr><tr><td><code>src/lib/share-image.ts:12</code></td><td><code>/** Site-relative path to an absolute URL (Open Graph consumers need absolute URLs). */</code></td></tr><tr><td><code>src/lib/sitemap.ts:22</code></td><td><code>): string =&gt; {</code></td></tr><tr><td><code>src/lib/sitemap.ts:32</code></td><td><code>export const buildRobots = (siteUrl: string): string =&gt;</code></td></tr><tr><td><code>src/lib/tracking.ts:315</code></td><td><code>body,</code></td></tr><tr><td><code>src/lib/api/mappers.ts:70</code></td><td><code>const base = lastSpace &gt; 0 ? cut.slice(0, lastSpace) : cut;</code></td></tr></table>
+    <h4>Técnica</h4><p>Reemplazar la regex por un recorte lineal desde el final de la cadena. Un solo helper reutilizable (nuevo <code>src/lib/text.ts</code>) en vez de seis regex sueltas. El comportamiento es idéntico.</p>
+    <h4>Propuesta</h4><pre><code>// src/lib/text.ts (nuevo)
+/** Same result as s.replace(/\/+$/, ''), in linear time. */
+export const trimTrailingSlashes = (s: string): string =&gt; {
+  let end = s.length;
+  while (end &gt; 0 &amp;&amp; s.charCodeAt(end - 1) === 47) end--; // 47 = &quot;/&quot;
+  return s.slice(0, end);
+};
+
+/** Same as s.replace(/[\s.,;:!?-]+$/, ''), in linear time. */
+export const trimTrailingPunctuation = (s: string): string =&gt; {
+  let end = s.length;
+  while (end &gt; 0 &amp;&amp; /[\s.,;:!?-]/.test(s[end - 1]!)) end--;
+  return s.slice(0, end);
+};
+
+// uso
+const clean = (v: unknown) =&gt; trimTrailingSlashes((typeof v === 'string' ? v : '').trim());   // env.ts:28
+`${trimTrailingPunctuation(base)}…`                                                          // mappers.ts:70</code></pre>
+    <h4>Riesgo y verificación</h4><p>Bajo. Cubrir el helper con un test que compare contra la regex original (entradas vacías, solo barras, "a//", "a/b/"). Afecta URLs de sitemap y Open Graph: revisar <code>/sitemap.xml</code> antes y después.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 6 issues.</p>
+  </article>
+  <article id="F2" class="g fix">
+    <h3><span class="id">F2</span> Regex de correo con backtracking</h3>
+    <p class="meta"><code>typescript:S8786</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>El patrón <code>[^\s@&lt;&gt;"]+@[^\s@&lt;&gt;"]+\.[^\s@&lt;&gt;"]+</code> tiene grupos que se solapan y puede ser lento con cadenas largas sin punto. El dato (correo de contacto del negocio) viene de la API.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/lib/contact.ts:23</code></td><td><code>const EMAIL = /^[^\s@&lt;&gt;&quot;]+@[^\s@&lt;&gt;&quot;]+\.[^\s@&lt;&gt;&quot;]+$/;</code></td></tr></table>
+    <h4>Técnica</h4><p>Poner un tope de longitud (254 caracteres, el máximo de un correo) antes de aplicar la regex. Con entrada acotada, el peor caso deja de importar y la regex no cambia.</p>
+    <h4>Propuesta</h4><pre><code>const EMAIL = /^[^\s@&lt;&gt;&quot;]+@[^\s@&lt;&gt;&quot;]+\.[^\s@&lt;&gt;&quot;]+$/;
+const isEmail = (value: string) =&gt; value.length &lt;= 254 &amp;&amp; EMAIL.test(value);</code></pre>
+    <h4>Riesgo y verificación</h4><p>Bajo. Un correo de más de 254 caracteres ya no es válido en ningún estándar.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 1 issue.</p>
+  </article>
+  <article id="F3" class="g fix">
+    <h3><span class="id">F3</span> <code>sort()</code> sin función de comparación</h3>
+    <p class="meta"><code>typescript:S2871</code> <span class="tag critical">CRITICAL</span> <span class="tag">BUG</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Media</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>Ordena marcas por código de carácter. Es correcto para slugs en minúsculas y guiones, y la línea siguiente (113) compara el resultado con el orden recibido en la URL. Por eso <strong>no conviene</strong> usar <code>localeCompare</code>, como sugiere Sonar: cambiaría el orden canónico de la URL y afectaría al SEO.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/lib/listing-query.ts:111</code></td><td><code>.map(([, value]) =&gt; value.trim().toLowerCase())</code></td></tr></table>
+    <h4>Técnica</h4><p>Pasar un comparador explícito que mantenga el orden actual. Cumple la regla sin cambiar un solo resultado.</p>
+    <h4>Propuesta</h4><pre><code>const byCodeUnit = (a: string, b: string) =&gt; (a &lt; b ? -1 : a &gt; b ? 1 : 0);
+const brands = [...new Set(slugs)].sort(byCodeUnit).slice(0, MAX_BRANDS);</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno: mismo orden que hoy. Un test con marcas <code>["b","a-b","a"]</code> fija el orden esperado.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 1 issue.</p>
+  </article>
+  <article id="F4" class="g fix">
+    <h3><span class="id">F4</span> Promise usada como condición</h3>
+    <p class="meta"><code>typescript:S6544</code> <span class="tag major">MAJOR</span> <span class="tag">BUG</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p><code>document.fonts.ready</code> es una Promise y siempre es verdadera: la condición solo comprueba en la práctica que <code>document.fonts</code> exista. Funciona, pero engaña a quien lo lee.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/components/landing/reviews-carousel.ts:235</code></td><td><code>if (document.fonts) void document.fonts.ready.then(sync);</code></td></tr></table>
+    <h4>Técnica</h4><p>Comprobar lo que realmente se quiere saber.</p>
+    <h4>Propuesta</h4><pre><code>if (document.fonts) void document.fonts.ready.then(sync);</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno: mismo comportamiento.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 1 issue.</p>
+  </article>
+  <article id="F5" class="g fix">
+    <h3><span class="id">F5</span> Aviso de estilo que esconde un bug real: <code>/^[1-9]d?$/</code></h3>
+    <p class="meta"><code>typescript:S7773</code> <span class="tag minor">MINOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Alta</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>Sonar solo pide <code>Number.NaN</code>, pero al leer la línea se ve que la regex lleva una <code>d</code> literal en vez de <code>\d</code>. <code>PAGE_SIZES</code> es <code>[3, 6, 9, 12]</code>, y con esa regex <code>?tamano=12</code> no pasa la validación (acepta "5" o "5d", nunca dos dígitos), así que el tamaño 12 cae siempre al valor por defecto.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/lib/listing.ts:34</code></td><td><code>const size = raw === null || raw === undefined || !/^[1-9]\d?$/.test(raw) ? Number.NaN : Number(raw);</code></td></tr></table>
+    <h4>Técnica</h4><p>Corregir la regex y escribir primero el test que falla (<code>parsePageSize("12")</code> debe devolver 12), y usar <code>Number.NaN</code>.</p>
+    <h4>Propuesta</h4><pre><code>const size = raw === null || raw === undefined || !/^[1-9]\d?$/.test(raw) ? Number.NaN : Number(raw);</code></pre>
+    <h4>Riesgo y verificación</h4><p>Cambia comportamiento a propósito: <code>?tamano=12</code> pasa a funcionar. Revisar que esa URL siga con canonical y robots correctos (SEO) y que <code>?tamano=5d</code> siga cayendo al valor por defecto.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 1 issue y un bug funcional.</p>
+  </article>
+  <article id="F6" class="g fix">
+    <h3><span class="id">F6</span> <code>Math.random()</code> en los identificadores de tracking</h3>
+    <p class="meta"><code>typescript:S2245</code> <span class="tag major">MAJOR</span> <span class="tag">VULNERABILITY</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo S</span></p>
+    <h4>Problema</h4><p>Genera el id de vista (respaldo de <code>generateViewId</code>) y un id de sesión cuando <code>crypto.randomUUID</code> no está disponible. Son identificadores de analítica, no secretos, así que el riesgo es bajo; aun así <code>crypto.getRandomValues</code> existe incluso en contextos no seguros y cuesta lo mismo.</p>
+    <h4>Dónde (2)</h4>
+    <table class="loc"><tr><td><code>src/lib/tracking.ts:79</code></td><td><code>globalThis.crypto.getRandomValues(bytes);</code></td></tr><tr><td><code>src/lib/tracking.ts:233</code></td><td><code>}</code></td></tr></table>
+    <h4>Técnica</h4><p>Usar <code>crypto.getRandomValues</code> como respaldo, y dejar <code>Math.random</code> solo si no existe <code>crypto</code> (con un comentario que lo diga).</p>
+    <h4>Propuesta</h4><pre><code>const randomHex = (n: number): string =&gt; {
+  const bytes = new Uint8Array(n);
+  globalThis.crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) =&gt; HEX[b &amp; 15]).join('');
+};
+// tracking.ts:79 -&gt; const pick = () =&gt; ...   se reemplaza por randomHex(n)
+// tracking.ts:233 -&gt; `${Date.now().toString(36)}-${randomHex(10)}`</code></pre>
+    <h4>Riesgo y verificación</h4><p>Bajo. <code>generateViewId</code> ya recibe la fuente como parámetro, así que se prueba sin navegador (formato UUID v4 y unicidad).</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 2 issues.</p>
+  </article>
+  <article id="F7" class="g fix">
+    <h3><span class="id">F7</span> <code>try/catch</code> que no captura el rechazo de la Promise</h3>
+    <p class="meta"><code>typescript:S4822</code> <span class="tag major">MAJOR</span> <span class="tag">BUG</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>El <code>fetch(...).catch(() =&gt; undefined)</code> ya absorbe los errores asíncronos. El <code>try</code> solo sirve para el caso de que <code>fetch</code> no exista (navegadores muy viejos), y ese caso se puede comprobar directamente.</p>
+    <h4>Dónde (1)</h4>
+    <table class="loc"><tr><td><code>src/lib/tracking.ts:298</code></td><td><code>const BEACON_CONTENT_TYPE = 'text/plain;charset=UTF-8';</code></td></tr></table>
+    <h4>Técnica</h4><p>Reemplazar el <code>try/catch</code> por una comprobación explícita.</p>
+    <h4>Propuesta</h4><pre><code>if (typeof fetch === 'function') {
+  void fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': BEACON_CONTENT_TYPE },
+    body,
+    keepalive: true,
+  }).catch(() =&gt; undefined);
+}</code></pre>
+    <h4>Riesgo y verificación</h4><p>Bajo. El tracking nunca debe romper la página: el test existente de <code>makeTransport</code> (si hay) debe seguir en verde.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 1 issue.</p>
+  </article></section>
+  <section id="backoffice"><h2>Back office (React + Vite)</h2>
+  <article id="B1" class="g fix">
+    <h3><span class="id">B1</span> Regex con backtracking al recortar "/", "-" y puntos</h3>
+    <p class="meta"><code>typescript:S8786</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Media</span> <span class="tag">Esfuerzo M</span></p>
+    <h4>Problema</h4><p>Seis regex hacen lo mismo que en el storefront: quitan barras, guiones o puntos al final o al principio. Además, la expresión <code>base.replace(/\/+$/, "") + "/" + key.replace(/^\/+/, "")</code> está <strong>copiada tal cual</strong> en dos archivos.</p>
+    <h4>Dónde (6)</h4>
+    <table class="loc"><tr><td><code>src/lib/env.ts:7</code></td><td><code>import { trimTrailingSlashes } from './text';</code></td></tr><tr><td><code>src/sections/consejos/logic.ts:106</code></td><td><code>if (!key || !base) return null;</code></td></tr><tr><td><code>src/sections/productos/logic.ts:430</code></td><td><code>if (!key || !base) return null;</code></td></tr><tr><td><code>src/sections/productos/logic.ts:367</code></td><td><code>if (error.kind === 'conflict') {</code></td></tr><tr><td><code>src/sections/tenants/logic.ts:61</code></td><td><code>.replace(/[^a-z0-9]+/g, '-');</code></td></tr><tr><td><code>src/sections/tenants/logic.ts:63</code></td><td><code>}</code></td></tr></table>
+    <h4>Técnica</h4><p>Un módulo pequeño <code>src/lib/text.ts</code> con recortes lineales (<code>trimTrailingSlashes</code>, <code>trimChar</code>) y una función única <code>joinUrl(base, key)</code> que sustituye las dos copias. Corrige el aviso y quita código duplicado.</p>
+    <h4>Propuesta</h4><pre><code>// src/lib/text.ts (nuevo)
+export const trimTrailingSlashes = (s: string) =&gt; trimEnd(s, (c) =&gt; c === '/');
+export const trimChar = (s: string, ch: string) =&gt; trimEnd(trimStart(s, (c) =&gt; c === ch), (c) =&gt; c === ch);
+export const joinUrl = (base: string, key: string) =&gt;
+  `${trimTrailingSlashes(base)}/${trimStart(key, (c) =&gt; c === '/')}`;
+// trimStart / trimEnd: bucle while sobre el índice, mismo resultado que la regex
+
+// consejos/logic.ts:106 y productos/logic.ts:430 -&gt; return joinUrl(base, key);
+// tenants/logic.ts:61,63 -&gt; trimChar(slug, '-')
+// productos/logic.ts:367 -&gt; `${trimEnd(error.message, (c) =&gt; c === '.' || /\s/.test(c))}. Cambia el nombre...`</code></pre>
+    <h4>Riesgo y verificación</h4><p>Medio-bajo: <code>joinUrl</code> se usa para armar URLs de imágenes. Cubrirlo con tests (base con y sin "/", clave con y sin "/") y probar el slug de tenants con "--a--".</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 6 issues (las 2 líneas de <code>joinUrl</code> cuentan como 2).</p>
+  </article>
+  <article id="B2" class="g fix">
+    <h3><span class="id">B2</span> La misma regex de correo copiada en 4 archivos</h3>
+    <p class="meta"><code>typescript:S8786</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Media</span> <span class="tag">Esfuerzo S</span></p>
+    <h4>Problema</h4><p>El patrón <code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code> aparece idéntico en cuatro lugares. Es el mismo caso que F2, pero repetido, así que cualquier corrección hay que hacerla cuatro veces.</p>
+    <h4>Dónde (4)</h4>
+    <table class="loc"><tr><td><code>src/lib/auth/reset.ts:23</code></td><td><code></code></td></tr><tr><td><code>src/sections/usuarios/logic.ts:42</code></td><td><code>const PHONE_PATTERN = /^[0-9+()\-. ]*$/;</code></td></tr><tr><td><code>src/shell/profile-logic.ts:10</code></td><td><code></code></td></tr><tr><td><code>src/sections/tenants/logic.ts:51</code></td><td><code>const SLUG = /^[a-z0-9][a-z0-9-]{1,40}$/;</code></td></tr></table>
+    <h4>Técnica</h4><p>Una sola función <code>isEmailShape</code> en <code>src/lib/validation.ts</code> con tope de 254 caracteres, usada por los cuatro. La API sigue siendo la autoridad.</p>
+    <h4>Propuesta</h4><pre><code>// src/lib/validation.ts (nuevo)
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const isEmailShape = (raw: string): boolean =&gt; raw.length &lt;= 254 &amp;&amp; EMAIL_SHAPE.test(raw);
+
+// reset.ts:23 -&gt; isEmailShape(raw.trim())
+// los otros tres -&gt; importar isEmailShape y borrar su constante local</code></pre>
+    <h4>Riesgo y verificación</h4><p>Bajo. Los tests de validación de cada pantalla (usuarios, perfil, tenants, reset) deben seguir en verde.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 4 issues.</p>
+  </article>
+  <article id="B3" class="g fix">
+    <h3><span class="id">B3</span> <code>navigate()</code> devuelve una Promise que nadie espera</h3>
+    <p class="meta"><code>typescript:S9383</code> <span class="tag major">MAJOR</span> <span class="tag">BUG</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Alta</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>En esta versión de react-router, <code>navigate</code> puede devolver una Promise. Si la navegación falla, el rechazo queda sin manejar. Pasa en el flujo de cerrar sesión (<code>Shell.tsx</code>) y al limpiar el filtro de producto en reseñas.</p>
+    <h4>Dónde (2)</h4>
+    <table class="loc"><tr><td><code>src/shell/Shell.tsx:145</code></td><td><code>void navigate('/', { replace: true });</code></td></tr><tr><td><code>src/sections/resenas/index.tsx:149</code></td><td><code>if (product) void navigate({ pathname, search: clearProductParams(search) });</code></td></tr></table>
+    <h4>Técnica</h4><p>Marcar la Promise como ignorada a propósito con <code>void</code>, el mismo estilo que ya usa el storefront. No cambia el orden de ejecución.</p>
+    <h4>Propuesta</h4><pre><code>// Shell.tsx:145
+void navigate('/', { replace: true });
+onLogout();
+
+// resenas/index.tsx:149
+if (product) void navigate({ pathname, search: clearProductParams(search) });</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno. Verificar a mano: cerrar sesión y limpiar el filtro de producto en reseñas.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 2 issues.</p>
+  </article>
+  <article id="B4" class="g fix">
+    <h3><span class="id">B4</span> <code>parseInt</code> global</h3>
+    <p class="meta"><code>typescript:S7773</code> <span class="tag minor">MINOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-fix">Corregir</span> <span class="tag">Prioridad Baja</span> <span class="tag">Esfuerzo XS</span></p>
+    <h4>Problema</h4><p>Estilo: preferir <code>Number.parseInt</code>. Mismo resultado.</p>
+    <h4>Dónde (2)</h4>
+    <table class="loc"><tr><td><code>src/sections/productos/catalogBackgrounds.ts:73</code></td><td><code>const c = Number.parseInt(hex.slice(i, i + 2), 16) / 255;</code></td></tr><tr><td><code>src/sections/contacto/embed.ts:22</code></td><td><code>.replace(/&amp;#x([0-9a-f]+);/gi, (_, h: string) =&gt; String.fromCodePoint(Number.parseInt(h, 16)))</code></td></tr></table>
+    <h4>Técnica</h4><p>Renombrar la llamada.</p>
+    <h4>Propuesta</h4><pre><code>Number.parseInt(hex.slice(i, i + 2), 16)
+String.fromCodePoint(Number.parseInt(h, 16))</code></pre>
+    <h4>Riesgo y verificación</h4><p>Ninguno.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 2 issues.</p>
+  </article>
+  <article id="B5" class="g verify">
+    <h3><span class="id">B5</span> <code>tabIndex</code> en elementos no interactivos</h3>
+    <p class="meta"><code>typescript:S6845</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-verify">Verificar y decidir</span> <span class="tag">Prioridad Media</span> <span class="tag">Esfuerzo S</span></p>
+    <h4>Problema</h4><p>Los dos primeros son contenedores con scroll y <code>aria-label</code>: llevan <code>tabIndex={0}</code> para que quien navega con teclado pueda enfocarlos y desplazarlos. Eso es intencional y recomendado (WCAG 2.1.1), así que Sonar se equivoca ahí. El tercero (<code>productos/index.tsx:38</code>) es un <code>&lt;span&gt;</code> con <code>cursor-help</code>, un disparador de tooltip: ese sí debería ser un elemento interactivo.</p>
+    <h4>Dónde (3)</h4>
+    <table class="loc"><tr><td><code>src/sections/dashboard/index.tsx:185</code></td><td><code>tabIndex={0}</code></td></tr><tr><td><code>src/sections/dashboard/index.tsx:222</code></td><td><code>tabIndex={0}</code></td></tr><tr><td><code>src/sections/productos/index.tsx:38</code></td><td><code>type=&quot;button&quot;</code></td></tr></table>
+    <h4>Técnica</h4><p>Dashboard (2): conservar el <code>tabIndex</code> y marcar los 2 issues como "Accepted" en Sonar con la justificación. Productos (1): cambiar el <code>span</code> por un <code>&lt;button type="button"&gt;</code> con los mismos estilos; hay que leer el componente completo antes de tocarlo.</p>
+    <h4>Propuesta</h4><pre><code>// productos/index.tsx:38 (idea)
+&lt;button type=&quot;button&quot; className=&quot;inline-flex cursor-help rounded underline decoration-dotted ...&quot; ...&gt;
+  ...
+&lt;/button&gt;</code></pre>
+    <h4>Riesgo y verificación</h4><p>Medio en el botón: cambia el elemento HTML, así que hay que revisar estilos y el comportamiento del tooltip con teclado y foco. Probar con Tab.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige 1 y acepta 2 (los 2 del dashboard seguirían en Sonar como aceptados).</p>
+  </article>
+  <article id="B6" class="g verify">
+    <h3><span class="id">B6</span> Roles ARIA y filas ocultas</h3>
+    <p class="meta"><code>typescript:S6852 / S6825</code> <span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span> <span class="tag act-verify">Verificar y decidir</span> <span class="tag">Prioridad Media</span> <span class="tag">Esfuerzo S</span></p>
+    <h4>Problema</h4><p><code>ProfileMenu.tsx:92</code>: un contenedor con <code>role="menu"</code> debería poder recibir foco para abrir el menú con teclado (patrón del menú de WAI-ARIA). <code>Tabs.tsx:50</code>: en un <code>tablist</code> el foco lo reciben las pestañas, no el contenedor, así que probablemente es un falso positivo. <code>DataTable.tsx:103</code>: una fila <code>&lt;tr aria-hidden="true"&gt;</code> de esqueleto de carga; una fila no es enfocable, así que parece un falso positivo.</p>
+    <h4>Dónde (3)</h4>
+    <table class="loc"><tr><td><code>src/shell/ProfileMenu.tsx:92</code></td><td><code>&lt;div</code></td></tr><tr><td><code>src/ui/Tabs.tsx:50</code></td><td><code>&lt;div role=&quot;tablist&quot; aria-label={label} onKeyDown={onKeyDown} className={cx('flex gap-1 overflow-x-auto border-b border-line', className)}&gt;</code></td></tr><tr><td><code>src/ui/DataTable.tsx:103</code></td><td><code>&lt;tr key={i} aria-hidden=&quot;true&quot;&gt;</code></td></tr></table>
+    <h4>Técnica</h4><p>No tengo el componente completo a la vista, así que antes de cambiar nada: (1) leer <code>ProfileMenu</code> y comprobar cómo maneja el foco; si no lo maneja, añadir <code>tabIndex={-1}</code> y enfocarlo al abrir. (2) <code>Tabs</code> y <code>DataTable</code>: confirmar con una herramienta de accesibilidad (axe en DevTools) y, si no hay problema real, marcarlos "Accepted" con justificación.</p>
+    <h4>Propuesta</h4><pre><code>// ProfileMenu.tsx:92 (si el foco no se maneja ya)
+&lt;div ref={menuRef} role=&quot;menu&quot; tabIndex={-1} ...&gt;
+// y en el efecto que abre el menú: menuRef.current?.focus()</code></pre>
+    <h4>Riesgo y verificación</h4><p>Medio: el menú de perfil es de uso diario. Probar abrir, navegar con flechas y cerrar con Escape.</p>
+    <p class="res"><b>Resultado esperado:</b> Corrige hasta 1 y acepta hasta 2, tras comprobarlo.</p>
+  </article></section>
+  <h2>Orden sugerido</h2>
+  <ol>
+    <li><b>F5</b> y <b>B3</b>: arreglan comportamiento real (tamaño de página 12; rechazos de Promise sin manejar).</li>
+    <li><b>F3</b>, <b>F4</b>, <b>F7</b>, <b>A1</b>, <b>B4</b>: cambios chicos y sin riesgo.</li>
+    <li><b>F1</b>, <b>F2</b>, <b>B1</b>, <b>B2</b>, <b>F6</b>: los helpers compartidos, cada uno con su test.</li>
+    <li><b>B5</b>, <b>B6</b>: accesibilidad, tras revisar los componentes.</li>
+    <li><b>A2</b>: la excepción documentada de e2e.</li>
+  </ol>
+  <p class="lead">Cobertura (0 % hoy) no aparece como hallazgo porque no es un defecto del código. Para el "after", conviene al menos generar <code>coverage.out</code> en el API.</p>
+</main>
+</body>
+</html>

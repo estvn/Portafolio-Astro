@@ -1,0 +1,703 @@
+---
+title: 'Essenza - SaaS multi-tenant para tiendas de perfumes'
+description: 'Sistema SaaS multi-tenant: API en Go con arquitectura hexagonal y aislamiento por Row Level Security, backoffice en React y tienda en Astro SSR sobre Cloudflare Workers. Validado con SonarQube, OWASP ZAP, k6 y Playwright.'
+title_en: 'Essenza - Multi-tenant SaaS for perfume stores'
+description_en: 'Multi-tenant SaaS: a Go API with hexagonal architecture and Row Level Security isolation, a React back office and an Astro SSR storefront on Cloudflare Workers. Validated with SonarQube, OWASP ZAP, k6 and Playwright.'
+image:
+  url: '/assets/img/projects/essenza/cover.png'
+  alt: 'Panel de SonarQube con los tres proyectos de Essenza en calificación A tras las correcciones'
+technologies: ["Go", "Fiber", "PostgreSQL", "Row Level Security", "React", "TypeScript", "Vite", "Tailwind CSS", "Astro", "Cloudflare Workers", "Neon", "Render", "SonarQube", "OWASP ZAP", "k6", "Playwright", "Vitest"]
+url: 'essenza-saas'
+category: 'personal'
+links:
+  github:
+    - name: "Repositorio API (Go)"
+      url: "https://github.com/estvn/MULTITENANT_BE_PERFUME_STORES"
+    - name: "Repositorio Backoffice (React)"
+      url: "https://github.com/estvn/BACKOFFICE_FE_PERFUME_STORES"
+    - name: "Repositorio Tienda (Astro)"
+      url: "https://github.com/estvn/ESSENZAHN_FE"
+  live: ''
+---
+
+<div data-lang="es">
+
+## Resumen general
+
+Essenza es un SaaS multi-tenant para tiendas de perfumes: cada negocio tiene su tienda pública y su panel de administración, y todos comparten una sola API y una sola base de datos. El aislamiento entre negocios lo garantiza PostgreSQL, no solo el código.
+
+**Qué se construyó**
+
+- **Tienda:** Astro con renderizado en servidor (SSR) sobre un Cloudflare Worker, pensada para SEO.
+- **Backoffice:** React + TypeScript + Vite con Tailwind CSS.
+- **API:** Go con Fiber y arquitectura hexagonal.
+- **Base de datos:** PostgreSQL 17 en Neon, con Row Level Security para aislar a cada tenant.
+
+**Cómo se validó**
+
+- SonarQube sobre los tres proyectos (API, tienda y backoffice).
+- OWASP ZAP sobre la API, el backoffice y la tienda.
+- k6 para carga, con la API limitada como en Render Free (0.1 CPU y 512 MB).
+- Vitest y Playwright (572 tests de Vitest en la tienda y 714 en el backoffice, al 2026-11-21).
+
+**Dónde está desplegado**
+
+- Neon: base de datos y, en un segundo proyecto, el almacenamiento de imágenes.
+- Render: la API (Web Service con Docker) y el backoffice (Static Site).
+- Cloudflare: la tienda como Worker.
+- Brevo: correo transaccional por HTTPS.
+
+![Arquitectura de Essenza](/assets/img/projects/essenza/essenza-arquitectura.png)
+
+![Panel de SonarQube con los tres proyectos](/assets/img/projects/essenza/sonarqube-three-projects.png)
+
+![Panel de SonarQube antes de las correcciones](/assets/img/projects/essenza/sonarqube-before-dashboard.png)
+
+![Panel de SonarQube después de las correcciones](/assets/img/projects/essenza/sonarqube-after-dashboard.png)
+
+## Tienda (Storefront)
+
+Astro con renderizado en servidor sobre un Cloudflare Worker (uno por negocio). Prioridad: SEO y páginas ligeras. Los cambios del backoffice se ven sin reconstruir ni volver a desplegar la tienda.
+
+### Qué se hizo
+
+- Landing, categorías (`/categoria/<slug>/`) y página de producto, cada una con una URL real, canónica propia, `sitemap.xml` dinámico y un 404 con estado real y sugerencias.
+- Páginas livianas: la landing muestra 12 tarjetas por sección y un paginador numerado ("Página N de M"); los productos que no caben viven en `/categoria/<slug>/?pagina=N`.
+- Filtros sobre todo el catálogo (género, marca, precio, exclusivos, orden) como un formulario GET que funciona sin JavaScript. Con JavaScript, el paginador y los filtros cambian solo el bloque necesario.
+- Producto con galería de hasta 5 fotos con zoom, presentaciones por tamaño, etiqueta "Agotado" (la API nunca expone la cantidad) y reseñas en un modal sin captcha.
+- Mapa de Google solo si el negocio configuró su ubicación, logos de la marca traídos de la API (con respaldo local), imagen para compartir y datos estructurados JSON-LD.
+- Carrusel de reseñas, seguimiento de visitantes con id persistente (respeta DoNotTrack) y una caché en el borde que la API purga después de cada escritura.
+
+### Decisiones técnicas
+
+- **SSR en un Worker en vez de un sitio estático.** Los dueños editan productos desde el backoffice; un sitio estático pediría reconstruir cada vez. A cambio, el Worker tiene límites de CPU y de subpeticiones y depende de la caché para ser rápido (la CPU real en el plan gratuito no se midió).
+- **Caché de borde con "generación" de purga.** La Cache API no puede borrar todo; subir un número en la clave deja huérfanas todas las entradas. Pero la caché de Cloudflare es por centro de datos: el que recibe la purga se limpia al instante y el resto converge por TTL, hasta 5 minutos.
+- **TTL cortos y distintos.** Páginas 300 s, listados filtrados 60 s, 404 30 s, y el navegador siempre revalida (`max-age=0`).
+- **Clave de caché normalizada.** Solo entran `pagina`, `tamano` y los filtros, en minúscula y en orden fijo; así `utm_*` y `fbclid` comparten la entrada limpia. Un valor inválido responde 302 a la URL normalizada.
+- **Una sola renderización por URL fría** (`src/middleware.ts`). Si muchos visitantes piden a la vez la misma página sin caché, uno renderiza y los demás esperan. Solo vale por instancia del Worker.
+- **Páginas livianas y paginación en servidor.** Con 300 productos la landing pesaba 1.27 MB de HTML; ahora unos 142 KB, y la página de producto bajó de 153 KB a 34 KB. A cambio, los productos de más allá de la primera página viven en otra URL.
+- **Filtros con `noindex,follow` y canónica al listado sin filtrar.** Los filtros no diluyen el SEO ni llenan el sitemap. La lista sin filtros sí se indexa y su página N es canónica de sí misma.
+- **Mejora progresiva.** Cada círculo del paginador y el botón "Filtros" son enlaces reales; si el script falla, se navega normal. El costo es mantener dos caminos por control.
+- **Sin captcha en las reseñas.** Se quitó Cloudflare Turnstile de punta a punta. El spam se frena con un honeypot, un límite por IP en la API y moderación en el backoffice; el dueño aceptó una protección más débil.
+- **CSP estricta sin `unsafe-inline` en scripts.** Astro calcula hashes SHA-256 de los scripts y estilos inline; el Worker añade los orígenes exactos de imágenes, API y mapa. Queda `style-src-attr 'unsafe-inline'` porque los atributos `style=""` no se pueden hashear.
+- **Datos por petición, sin caché en memoria.** Cada petición pide sus datos una sola vez y no los guarda; la única caché es la del borde.
+- **Sin dominio propio.** La tienda vive en `workers.dev`, así que `PUBLIC_SITE_URL` debe coincidir exactamente con esa URL; que la Cache API funcione en `workers.dev` no está confirmado.
+
+### Pruebas
+
+#### SonarQube (proyecto `frontoffice-saas-stores`)
+
+**Pruebas antes (hallazgos).** 2026-11-21, reglas "Sonar way": 13 issues abiertos (3 bugs, 2 vulnerabilidades, 8 code smells), fiabilidad D y seguridad C. Los más serios: 6 regex con retroceso que podían colgar el servidor con entradas largas (`S8786`), un `sort()` sin comparador (`S2871`), una Promise usada como condición, siempre verdadera, en el carrusel de reseñas (`S6544`) y generadores pseudoaleatorios para los ids de visita (`S2245`).
+
+**Correcciones.**
+- 11 se corrigieron con código: las 6 regex pasaron a recortes lineales en `src/lib/text.ts` (con un test que las compara contra la regex original, incluida una entrada de 100 000 barras); un comparador explícito que mantiene el orden por unidad de código, para no cambiar las URLs canónicas; la condición del carrusel ahora mira `document.fonts`; `Number.NaN`; ids con `crypto.getRandomValues`; y un `try/catch` inútil fuera.
+- 2 no se corrigieron: son excepciones justificadas en `sonar-project.properties`. La regex del correo (la entrada se limita a 254 caracteres y Sonar sigue marcando la forma) y un `Math.random` como último recurso cuando no existe `crypto` (ids de analítica, nunca secretos). Una excepción esconde el aviso, no lo arregla.
+- En una pasada intermedia (segunda ronda) quedaban 2 abiertos, ambos `S2245`.
+
+**Pruebas después (resultados).** 13 a 0 abiertos, fiabilidad D a A y seguridad C a A, con 572 tests de Vitest en 44 archivos y `astro check` sin errores ni avisos. El Quality Gate pasó de OK a ERROR solo por la cobertura del código nuevo (0 % contra un mínimo de 80 %): la cobertura no se mide porque no se envía ningún reporte de tests a Sonar. El detalle de los security hotspots no se pudo leer con el token de análisis (el conteo es 0).
+
+**Reportes.** [Informe de SonarQube de la tienda (antes y después)](/assets/reports/essenza/store/sonarqube-store.html)
+
+#### OWASP ZAP (ZAP 2.17.0, build de producción)
+
+**Pruebas antes (hallazgos).** 2026-11-21: 3 alertas Medium de CSP (comodín, `script-src` y `style-src` con `unsafe-inline`), 1 Low real (`nosniff` ausente en los archivos de `/_astro/*`) y 1 Low más 5 informativas, que son falsos positivos o avisos. En total 2 problemas reales, ambos de cabeceras. No hubo inyección ni XSS; la alerta de posible XSS se probó a mano y Astro escapa el parámetro. Además, 3 tests de Playwright fallaban (con y sin ZAP): scroll horizontal en el teléfono, la hoja de filtros de la landing y `?orden=zzz&genero=zzz` que daba 200 en vez de 302. Pasaban 33, fallaban 3 y se omitía 1.
+
+**Correcciones.**
+- Ronda 1: CSP con `default-src`, `script-src`, `style-src`, `img-src`, `connect-src`, `font-src` y `frame-src` en `security-headers.ts` (con tests) y `nosniff` para `/_astro/*` en `public/_headers` (`fdf9e11`).
+- Ronda 2: CSP nativa de Astro con hashes SHA-256 y `img-src` limitado al origen del bucket de imágenes (`7453566`).
+- En la misma ronda: las URLs largas del FAQ ensanchaban la página en el teléfono (`overflow-wrap` y `min-width: 0`) y la caché servía una página con valores inválidos en vez de redirigir (ahora se salta la caché para esas URLs, con test).
+
+**Pruebas después (resultados).** Sin alertas Medium y sin la alerta de `nosniff`. Queda 1 Low (una constante numérica dentro del JS del hero, falso positivo) y 3 informativas de la tienda, más 2 informativas de la API pública vista desde la tienda. Playwright a través de ZAP pasó de 33 / 3 / 1 a 36 / 0 / 1 (pasan / fallan / omitido). Límites: ZAP no analiza el DOM, el preview local no pasa por Cloudflare (las cabeceras de borde pueden diferir) y la autorización por rol y tenant no está cubierta.
+
+![ZAP: araña sobre la tienda](/assets/img/projects/essenza/zap-spider-storefront.png)
+
+![ZAP: escaneo activo de la tienda](/assets/img/projects/essenza/zap-active-scan-storefront.png)
+
+**Reportes.** [Hallazgos del "antes" (solo la tienda)](/assets/reports/essenza/store/zap-store-hallazgos.html) · [Comparación antes y después (solo la tienda)](/assets/reports/essenza/store/zap-store-antes-despues.html). Los reportes completos de ZAP no se publican porque contienen el token de una cuenta de prueba.
+
+#### k6 (páginas reales con caché de borde fría, API limitada a 0.1 CPU y 512 MB)
+
+**Pruebas antes (hallazgos).** 2026-11-20: con 50 usuarios el p95 era de 4.6 s; con 100 usuarios, de 13.5 s con 1.9 % de fallos y 989 peticiones atendidas en 40 s; con 150 usuarios, de 17.4 s con 11 % de fallos. Cada visitante renderizaba la misma página fría por su cuenta, con varias llamadas a la API.
+
+**Correcciones.** Una sola renderización por URL en el Worker (`src/middleware.ts`): los demás esperan y arman su propia respuesta con datos compartidos. La primera versión compartía la `Response` entera y fallaba en 4 de 5 peticiones concurrentes; ahora solo se comparten estado, cabeceras y bytes. Esto no tiene test automático (importa `cloudflare:workers`).
+
+**Pruebas después (resultados).**
+- Primer ciclo: p95 de 2.5 s con 50 usuarios y de 1.7 s con 100, 0 % de fallos y 1 894 peticiones atendidas. Con 150 usuarios no se midió "después".
+- Segundo ciclo (2026-11-22, builds de producción): con 100 usuarios el p95 fue de 2.78 s a 2.46 s y 0 % de fallos en ambas; con 500 usuarios los fallos fueron de 3.2 % a 2.5 %. La tienda no cambió en ese ciclo, así que son diferencias de ruido, y el techo es el de la API de 0.1 CPU.
+- Tres repeticiones con 100 usuarios: p95 de 2.76 s a 2.87 s; 100 a 300 ms de diferencia no cuentan.
+- Navegador real: LCP p95 de 1.68 s a 1.18 s, pero aparecieron peticiones rotas (1.3 %) por una imagen de un producto demo sin archivo (5 de 43 imágenes activas). Con los datos de desarrollo reparados, 0 de 1 518 peticiones fallidas y LCP p95 de 1.37 s.
+- Límite: un portátil compartido y una corrida por nivel; la caché no se puede garantizar fría. No se midió el servicio desplegado en Cloudflare.
+
+**Reportes.** [Resumen de k6 de la tienda](/assets/reports/essenza/store/k6-store-resumen.html) · Primer ciclo, 50 usuarios: [antes](/assets/reports/essenza/store/k6/before-render-pages-50.html) / [después](/assets/reports/essenza/store/k6/after-render-pages-50.html) · 100 usuarios: [antes](/assets/reports/essenza/store/k6/before-render-pages-100.html) / [después](/assets/reports/essenza/store/k6/after-render-pages-100.html) · [150 antes](/assets/reports/essenza/store/k6/before-render-pages-150.html) · Segundo ciclo, 100 usuarios: [antes](/assets/reports/essenza/store/k6/before-pages-100.html) / [después](/assets/reports/essenza/store/k6/after-pages-100.html) · 150: [antes](/assets/reports/essenza/store/k6/before-pages-150.html) / [después](/assets/reports/essenza/store/k6/after-pages-150.html) · 300: [antes](/assets/reports/essenza/store/k6/before-pages-300.html) / [después](/assets/reports/essenza/store/k6/after-pages-300.html) · 500: [antes](/assets/reports/essenza/store/k6/before-pages-500.html) / [después](/assets/reports/essenza/store/k6/after-pages-500.html) · Navegador: [antes](/assets/reports/essenza/store/k6/before-browser-storefront.html) / [después](/assets/reports/essenza/store/k6/after-browser-storefront.html) / [después, datos reparados](/assets/reports/essenza/store/k6/after2-browser-storefront.html) · Repeticiones con 100 usuarios: [1](/assets/reports/essenza/store/k6/rep1-pages-100.html) · [2](/assets/reports/essenza/store/k6/rep2-pages-100.html) · [3](/assets/reports/essenza/store/k6/rep3-pages-100.html)
+
+#### Tests unitarios y Playwright
+
+- 572 tests de Vitest (44 archivos) y `astro check` sin errores, medidos el 2026-11-21; los tests crecieron después y no hay un conteo más reciente. La mayoría de las reglas son funciones puras en `src/lib/` con su `*.test.ts` al lado.
+- Playwright de tienda y tienda móvil (logo, paginador, categorías, producto, 404, diseño en teléfono): con ZAP como proxy pasaron 33 antes y 36 después de las correcciones, con 1 omitido.
+- Sin prueba automática: el middleware de caché y de renderización única, y no se midió la CPU real del Worker en el plan gratuito.
+
+## Backoffice
+
+Panel de administración en React + TypeScript + Vite, con diseño propio sobre Tailwind. Se despliega como Render Static Site y habla con la API por HTTPS.
+
+### Qué se hizo
+
+- Secciones con registro único (rutas, menú y migas) y permisos por rol que vienen de la API.
+- Productos con tipo y 1 a 20 presentaciones (tamaño, precio y stock privado), hasta 5 fotos y reordenado arrastrando.
+- Generador de catálogo en PDF/PNG en el navegador, con 3 a 5 productos por fila y solo productos activos con stock.
+- Datos del negocio con logo, ícono y wordmark por tenant; reseñas con moderación; FAQs, contactos y artículos.
+- Panel con estadísticas por período y sección de visitantes; roles, usuarios y, para la plataforma, alta y baja de tenants.
+- Flujo de recuperación de contraseña en 3 pasos y "Mi perfil".
+
+### Decisiones técnicas
+
+- Pantallas difíciles de probar → una `logic.ts` pura por sección (filtros, validación, payloads) probada con Vitest → 714 tests rápidos y sin DOM.
+- Convertir fotos en la API gratuita tardaba ~1 min y agotaba la memoria → conversión a WebP en el navegador (1600 px, calidad 0.82) con cola secuencial → una subida válida responde en ~157 ms.
+- API gratuita con poca CPU → TanStack Query con `staleTime` por área e invalidación según la escritura → menos peticiones repetidas y sin listas viejas tras guardar.
+- Reordenar con una petición por fila era lento → orden optimista con un único `PUT .../order` y reversión si falla → respuesta inmediata.
+- Catálogo sin servicio de renderizado → páginas A4 como DOM, `html-to-image` y `jsPDF` → PDF sin carga en el servidor (requiere CORS en el bucket).
+- Permisos que solo ocultan botones → la UI oculta y la API vuelve a exigir cada permiso → sin depender de la interfaz.
+- Riesgo de XSS robando la sesión → token en `sessionStorage` y CSP estricta con cabeceras → ZAP sin alertas Medium.
+- Regex de correo copiada en 4 archivos → un solo `isEmailShape` con tope de 254 caracteres → una sola copia que mantener.
+
+### Pruebas
+
+Cada informe de esta parte contiene solo datos del backoffice: se separaron de los informes que mezclaban API, tienda y backoffice.
+
+#### SonarQube (proyecto `backoffice-saas-stores`)
+
+- **Pruebas antes (hallazgos), 2026-11-21:** 20 abiertos (2 bugs, 18 code smells), fiabilidad C. Eran 10 regex con retroceso, 2 promesas sin esperar al cerrar sesión, 2 `parseInt` y 6 avisos de accesibilidad.
+- **Correcciones:** 14 con código: 6 regex a recortes lineales (`text.ts` con `joinUrl`, sin diferencias contra la regex original), una regex de correo centralizada, `void navigate(...)`, `Number.parseInt` y el disparador del tooltip pasó de `span` a `button`.
+- **Correcciones (excepciones, no cuentan como arreglo):** 6 justificadas: la regex de correo restante (tope de 254 caracteres) y 5 avisos de accesibilidad sobre código correcto (contenedores con scroll enfocables, tablist, filas de carga decorativas, menú que ya enfoca).
+- **Pruebas después (resultados):** 0 abiertos y fiabilidad A, con 714 tests y `tsc` sin errores. El Quality Gate quedó en ERROR por la cobertura del código nuevo (0 % de un mínimo de 80 %): no se envía cobertura a Sonar. El botón del tooltip no se probó a mano con teclado.
+
+**Reportes:** [SonarQube del backoffice (antes y después)](/assets/reports/essenza/backoffice/sonarqube-backoffice.html)
+
+#### OWASP ZAP (build de producción servido con `vite preview`)
+
+ZAP no puede descubrir las rutas de una SPA con la araña, así que se recorrió con Playwright pasando por el proxy de ZAP.
+
+- **Pruebas antes (hallazgos), 2026-11-21:** 6 alertas distintas. 3 reales: CSP ausente (Medium), sin anti-clickjacking (Medium) y sin `nosniff` (Low). El resto: una constante en el JS empaquetado, un comentario de librería y un aviso informativo de que es una SPA. Playwright por ZAP: 49 de 49 tests pasan.
+- **Correcciones:** CSP estricta, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` y `Permissions-Policy` (`1e1ccd7`). En la segunda ronda, `style-src 'self'` más `style-src-attr 'unsafe-inline'` para los `style=""` de las gráficas (`d01683b`).
+- **Correcciones (probado y descartado):** un middleware global que quitaba `' = < >` de todo texto rompía 4 tests, borraba datos legítimos y ZAP seguía marcando; se revirtió.
+- **Pruebas después (resultados):** 0 Medium, 1 Low (constante, falso positivo) y 2 informativas; Playwright a través de ZAP pasó 49/49. Las cabeceras se probaron en `vite preview`; en Render siguen sin verificar, porque Render ignora el archivo `_headers` (sintaxis de Cloudflare Pages) y hay que configurarlas en su panel.
+
+**Reportes:** [Comparación antes/después](/assets/reports/essenza/backoffice/zap-backoffice-antes-despues.html) · [Hallazgos del "antes"](/assets/reports/essenza/backoffice/zap-backoffice-hallazgos.html). Los reportes completos de ZAP no se publican porque contienen tokens de las cuentas de prueba.
+
+#### k6 (pantallas del backoffice y navegador real)
+
+API con los límites de Render Free (0.1 CPU y 512 MB), backoffice en producción local, 2026-11-22.
+
+- **Pruebas antes (hallazgos):** pantallas con p95 de 1.60 s con 100 usuarios (meta de 800 ms) y 55.9 % de fallos con 300. En el navegador, 2 de 5 sesiones no terminaban el login en 30 s y 5.6 % de las peticiones fallaban.
+- **Correcciones:** el usuario de prueba tenía un hash argon2id viejo (el costo se guarda con el hash), se actualizó sin tocar código; el CSP se construye desde `VITE_API_URL`; se añadió el favicon (`700a2aa`), cuyo 404 explicaba todas las peticiones fallidas del navegador.
+- **Pruebas después (resultados):** p95 de 1.48 s con 100 usuarios, sin tendencia clara (ruido de 100 a 300 ms; con 3 repeticiones la dispersión va de 16 % a 151 %). En el navegador, de 7 a 21 iteraciones sin timeouts de login, 0 de 537 peticiones fallidas y LCP p95 de 1.31 s a 1.14 s.
+- **Fotos desde la UI:** guardar una foto con 3 ventanas pasó de 2.64 s a 2.06 s (1.66 s tras el favicon) y con 5 ventanas de 6.72 s a 2.99 s (2.92 s tras el favicon).
+- **No corregido:** las pantallas a 300 y 500 usuarios (50.4 % y 80.2 % de fallos) por el techo de la CPU gratuita. Un perfil de CPU mostró el contenedor al tope (8.75 % de un máximo de 10 %). No se probó contra el backoffice desplegado en Render.
+
+**Reportes:** [Resumen k6 del backoffice](/assets/reports/essenza/backoffice/k6-backoffice-resumen.html) · Pantallas 100: [antes](/assets/reports/essenza/backoffice/k6/before-load-backoffice-100.html) / [después](/assets/reports/essenza/backoffice/k6/after-load-backoffice-100.html) · 150: [antes](/assets/reports/essenza/backoffice/k6/before-load-backoffice-150.html) / [después](/assets/reports/essenza/backoffice/k6/after-load-backoffice-150.html) · 300: [antes](/assets/reports/essenza/backoffice/k6/before-load-backoffice-300.html) / [después](/assets/reports/essenza/backoffice/k6/after-load-backoffice-300.html) · 500: [antes](/assets/reports/essenza/backoffice/k6/before-load-backoffice-500.html) / [después](/assets/reports/essenza/backoffice/k6/after-load-backoffice-500.html) · Navegador: [antes](/assets/reports/essenza/backoffice/k6/before-browser-backoffice.html) / [después](/assets/reports/essenza/backoffice/k6/after-browser-backoffice.html) / [después del favicon](/assets/reports/essenza/backoffice/k6/after2-browser-backoffice.html) · Subir foto 3 ventanas: [antes](/assets/reports/essenza/backoffice/k6/before-browser-upload-3.html) / [después](/assets/reports/essenza/backoffice/k6/after-browser-upload-3.html) / [después del favicon](/assets/reports/essenza/backoffice/k6/after2-browser-upload-3.html) · Subir foto 5 ventanas: [antes](/assets/reports/essenza/backoffice/k6/before-browser-upload-5.html) / [después](/assets/reports/essenza/backoffice/k6/after-browser-upload-5.html) / [después del favicon](/assets/reports/essenza/backoffice/k6/after2-browser-upload-5.html)
+
+#### Vitest y Playwright
+
+- 714 tests de Vitest y `tsc` limpio (2026-11-21). El conteo de tests antes de las correcciones de Sonar no se midió.
+- Playwright del backoffice: login, todas las secciones, paginador, generador de catálogo con descarga de PDF/PNG, barra de guardado y cambios que persisten y se restauran. Con ZAP como proxy pasan 49 de 49, antes y después de las correcciones de cabeceras.
+
+## API
+
+API en Go con Fiber, arquitectura hexagonal por feature y PostgreSQL (Neon) con Row Level Security. Corre en Render (plan gratuito: 0.1 CPU y 512 MB), con la base en Neon y el correo por la API HTTPS de Brevo.
+
+### Qué se hizo
+
+- Una carpeta por feature con casos de uso que no conocen a Fiber, pgx ni AWS; un test de arquitectura verifica las reglas de capas.
+- Aislamiento por tenant con RLS forzado y un rol `app_api` sin propiedad de tablas ni `BYPASSRLS`.
+- Autenticación con JWT y sesión verificada en cada petición de admin, argon2id, roles y permisos, y superadmin de plataforma.
+- Catálogo con tipos de producto y presentaciones, stock privado, reseñas anónimas, FAQs, contactos, artículos y estadísticas de visitantes.
+- Imágenes validadas como WebP (máximo 5 por producto) y guardadas con clave única; borrado lógico en todo.
+- Lecturas públicas con ETag, purga de la tienda tras cada escritura, límites de tasa y rechazo por sobrecarga.
+- Validación: tests unitarios, de integración y de arquitectura, `go build`, `go vet`, SonarQube, OWASP ZAP y k6 con los límites de Render.
+
+### Decisiones técnicas
+
+- El aislamiento no debía depender de recordar un `WHERE tenant_id` → RLS con `FORCE` y claves foráneas compuestas `(tenant_id, x_id)` → la base rechaza el cruce entre tenants.
+- Un rol creado en la consola de Neon hereda `BYPASSRLS` → el rol se crea con SQL y se comprueba `rolbypassrls = false` → el aislamiento no se apaga en silencio.
+- Un JWT sin estado no cierra sesión al cambiar la contraseña → chequeo de sesión (permisos, `pwd`, tenant activo) en cada petición de admin → el cierre es inmediato.
+- La arquitectura se degrada sin que nadie lo note → test de arquitectura que falla ante una violación → las reglas se cumplen en CI.
+- "No se borra nada" → `deleted_at` y `DELETE` revocado en las últimas tablas → la base rechaza el borrado físico.
+- Dos subidas simultáneas podían pasar el límite de 5 fotos → recuento bajo `FOR UPDATE` → el límite se mantiene.
+- El login costaba 3.6 s de CPU en 0.1 CPU → argon2id al mínimo de OWASP en un pool acotado → 0.7 s por login y 503 inmediato si la cola se llena.
+- Render bloquea los puertos SMTP → correo por la API HTTPS de Brevo → recuperación de contraseña y reenvío de invitaciones funcionando.
+- Lecturas repetidas sobre una API de 0.1 CPU → `ETag` con 304 y `s-maxage=30` más 60 s de `stale-while-revalidate` → menos trabajo para el origen.
+- Ráfagas con Neon detrás de un pooler → `QueryExecModeExec` sin sentencias preparadas en el servidor → funciona con pgbouncer.
+
+### Pruebas
+
+#### Tests de la API (`go test`, `go vet`)
+
+- `go build`, `go vet` y `go test` de la API en verde el 2026-11-21. No hay un conteo total de tests medido para esta página.
+- Unitarios de los casos de uso con fakes en memoria, test de arquitectura, hash, límite de tasa, resolución de tenant con 50 llamadas concurrentes y la lista exacta de rutas.
+- De integración sobre un Postgres real con RLS: aislamiento entre tenants, RBAC y reglas de escalada de roles, productos, imágenes, reseñas, sobrecarga y purga de la tienda. Sin un Postgres de pruebas accesible se saltan.
+- Antes de la ronda de SonarQube ya fallaban 4 tests de integración de política de contraseñas; no se tocaron.
+- La autorización por rol y tenant se prueba aquí, con los tests de integración, porque ZAP no la cubre.
+
+#### SonarQube (proyecto `api-saas-stores`)
+
+**Pruebas antes (hallazgos), 2026-11-21**
+
+- 7 issues abiertos: 2 bugs (`go:S1764`, expresiones idénticas en tests) y 5 vulnerabilidades (`python:S2245`, generador pseudoaleatorio en un script de fixtures).
+- Fiabilidad C, seguridad C, mantenibilidad A, Quality Gate OK, 12 095 líneas, cobertura 0 % (no se envía a Sonar).
+
+**Correcciones**
+
+- 2 con código: las llamadas repetidas de los tests de hash de código y de rate limit pasaron a variables con nombre. Son archivos de test, no código de producción.
+- 5 excepciones justificadas, que no cuentan como arreglo: el script de fixtures e2e usa `random` con semilla fija para generar siempre las mismas imágenes; la excepción cubre solo `e2e/scripts`.
+- Los security hotspots no se pudieron leer en detalle con el token de análisis (Sonar cuenta 0).
+
+**Pruebas después (resultados), 2026-11-21**
+
+- 0 issues abiertos, fiabilidad A, seguridad A, mantenibilidad A y Quality Gate OK. Cobertura 0 % en Sonar y duplicación 0.2 %, igual que antes.
+- `go test` de los paquetes tocados (auth y ratelimit) en verde.
+
+**Reportes:** [SonarQube de la API: antes y después](/assets/reports/essenza/api/sonarqube-api.html)
+
+#### OWASP ZAP (escaneo activo, política API, ZAP 2.17.0)
+
+**Pruebas antes (hallazgos), 2026-11-21**
+
+- 3 alertas distintas: SQL Injection (High, 9 instancias), Private IP Disclosure (Low, 1) y Authentication Request Identified (Info, 2).
+- El primer escaneo hecho a mano fue superficial: solo 2.2 % de respuestas 2xx, porque los cuerpos eran de relleno y los ids falsos.
+- Esfuerzo del escaneo final: 68 640 peticiones en la pasada principal, 1 438 en la de plataforma y 70 137 en la de DELETE.
+
+**Correcciones**
+
+- Del escaneo: OpenAPI generado con cuerpos e ids reales, los DELETE en un archivo aparte, rutas de plataforma con un usuario superadmin, `change-password` excluida y una subida de imagen válida sembrada a mano. Con eso, 62 de 74 operaciones respondieron 2xx.
+- Del hallazgo: SQL Injection es un falso positivo (ZAP compara 201 contra 409 por nombre duplicado); un test de integración guarda `' OR 1=1 --` y comprueba que queda como texto literal (`67430c1`). La IP privada es la puerta de enlace de WSL del entorno de desarrollo.
+
+**Pruebas después (resultados), 2026-11-21**
+
+- Las mismas 3 alertas con los mismos conteos (9, 1 y 2), que es lo esperado porque la lógica de la API no cambió.
+- La pasada principal mandó unas 21 400 peticiones contra 68 640 del "antes"; no se conoce la causa.
+- Sin cubrir: autorización por rol y tenant, JWT manipulado, `X-Tenant` falso, y el límite de tasa estaba apagado. No hay una prueba manual con curl registrada: no medido.
+
+![ZAP: importar el OpenAPI de la API](/assets/img/projects/essenza/zap-import-openapi.png)
+
+![ZAP: política API en el escaneo activo](/assets/img/projects/essenza/zap-active-scan-api-policy.png)
+
+![ZAP: excluir change-password del ataque](/assets/img/projects/essenza/zap-exclude-change-password.png)
+
+**Reportes:** [Hallazgos del "antes"](/assets/reports/essenza/api/zap-api-hallazgos.html) · [Comparación antes y después](/assets/reports/essenza/api/zap-api-antes-despues.html)
+
+#### k6 (API en contenedor con los límites de Render Free)
+
+**Pruebas antes (hallazgos)**
+
+- 2026-11-22: el login masivo fallaba 84.0 % / 90.6 % / 98.8 % / 99.6 % con 100 / 150 / 300 / 500 usuarios; la API pública que lee la tienda tenía p95 de 820 ms a 2.37 s y 34.9 % de fallos con 500.
+- Primer ciclo, 2026-11-20: el hash argon2id completo costaba unos 3.6 s por login y convertir una foto en la API tardaba unos 60 s: con 5 subidas todas llegaban al timeout (27.8 % de fallos) y con 10 el contenedor moría por memoria (60.6 %).
+
+**Correcciones**
+
+- Hash al mínimo de OWASP: de 3.6 s a 0.7 s por login (10 logins seguidos). En el ciclo del 2026-11-22 solo se actualizó el hash del usuario de prueba, porque un hash guardado conserva su costo.
+- WebP convertido en el navegador y la API solo valida. Se probó libwebp con pérdida en la API y no se adoptó: también se quedaba sin memoria con 10 subidas.
+- Probado y no adoptado: una cola de hash más corta cambia esperas de 40 s por fallos rápidos pero deja entrar de 13 % a 43 % menos gente.
+
+**Pruebas después (resultados)**
+
+- Login masivo con 100 usuarios: de 84.0 % a 24.9 % de fallos.
+- Subidas de foto con 5 / 10 / 25 usuarios: p95 de 330 ms / 567 ms / 1.49 s y 0 % de fallos (primer ciclo).
+- Entre 3 repeticiones, el login masivo con 100 usuarios falla entre 22 % y 31 %, y las latencias p95 varían mucho, así que diferencias de 100 a 300 ms son ruido.
+- Límite: con 300 y 500 usuarios la API falla de 35 % a 80 % y el login falla 92 % y 97 %; con 0.1 CPU caben menos de 2 logins por segundo.
+
+**Reportes:** [Resumen de k6 de la API](/assets/reports/essenza/api/k6-api-resumen.html) · Login masivo 100 usuarios: [antes](/assets/reports/essenza/api/k6/before-load-login-storm-100.html) / [después](/assets/reports/essenza/api/k6/after-load-login-storm-100.html) · API de la tienda 500 usuarios: [antes](/assets/reports/essenza/api/k6/before-load-storefront-500.html) / [después](/assets/reports/essenza/api/k6/after-load-storefront-500.html) · Subida de fotos 10 usuarios: [antes](/assets/reports/essenza/api/k6/before-heavy-writes-10.html) / [después](/assets/reports/essenza/api/k6/after-heavy-writes-10.html) · Primer ciclo, 5 usuarios: [antes](/assets/reports/essenza/api/k6/first-cycle/before-render-heavy-writes-5.html) / [después](/assets/reports/essenza/api/k6/first-cycle/after-render-heavy-writes-5.html)
+
+## Cloud e infraestructura
+
+Todo corre sobre planes gratuitos, con un runbook escrito en lugar de Terraform: son unos cinco recursos que se crean una sola vez, el plan gratuito de Render no se puede crear con su proveedor de Terraform y los proveedores de Neon estaban archivados o en beta (revisado el 2026-11-12).
+
+### Qué se hizo
+
+- **Base de datos:** un proyecto de Neon con Postgres 17 en Ohio, con conexión por pooler para la API y conexión directa para las migraciones.
+- **Imágenes:** un segundo proyecto de Neon con Object Storage (compatible con S3, lectura pública). No es Cloudflare R2; las variables `R2_*` de la API conservan ese nombre por historia.
+- **API:** Render Web Service con Docker, plan gratuito (0.1 CPU y 512 MB), en Ohio.
+- **Backoffice:** Render Static Site. **Tienda:** Cloudflare Worker desplegado desde Git.
+- **Correo:** Brevo por HTTPS, sin dominio propio: todo vive en subdominios de Render y Cloudflare.
+- No hay workflows de GitHub Actions: Render y Cloudflare construyen directo desde los repositorios.
+
+![Configuración del servicio de la API en Render](/assets/img/projects/essenza/render-api-service-config.png)
+
+### Decisiones técnicas
+
+- **Runbook en vez de Terraform:** el despliegue queda documentado paso a paso. A cambio, no es reproducible desde código.
+- **Rol de base de datos creado con SQL:** un rol creado desde la consola de Neon hereda `BYPASSRLS` y apagaría el aislamiento sin avisar. Se crea con SQL y se comprueba que `rolbypassrls` sea `false`.
+- **Pooler para la API, conexión directa para migraciones:** el pooler no admite sentencias preparadas, por eso no se usan en la API.
+- **Imágenes en un proyecto aparte:** Neon da 5 GB de salida de datos por proyecto, compartidos entre base e imágenes. Separarlas hace que un pico de tráfico solo afecte a las fotos. La base guarda solo la clave del objeto.
+- **Correo con Brevo:** Render bloquea los puertos SMTP (25, 465 y 587), así que Gmail SMTP nunca funcionó allí. Brevo usa una API HTTPS y no necesita dominio. Con un remitente `@gmail.com`, Brevo reescribe el remitente visible a su dominio y es más probable que caiga en spam. La API de Gmail queda como alternativa, pero necesita dominio propio para publicar la app.
+- **Caché por capas:** navegador (`max-age=0`, siempre revalida), Worker de Cloudflare (300 s en páginas, 60 s en listados filtrados, 30 s en 404), API (`s-maxage=30` más 60 s de `stale-while-revalidate`, con ETag y 304) e imágenes inmutables por un año gracias a claves únicas.
+- **Purga limitada:** la API avisa a la tienda con `POST /__purge` tras cada escritura, pero la caché de Cloudflare es por centro de datos. La purga limpia el que la recibe y el resto converge por TTL, hasta 5 minutos.
+- **Límites del plan gratuito:** la API duerme a los 15 minutos sin tráfico y tarda cerca de un minuto en despertar; se previó un ping a `/health` cada 5 minutos que no despierta a Neon. No hay registro de que ese ping esté activo.
+- **Secretos solo donde se usan:** la API recibe únicamente el rol restringido, el secreto de purga vive solo en el Worker y las variables `PUBLIC_*` y `VITE_*` no llevan secretos.
+- **Migraciones solo hacia adelante:** archivos goose compatibles hacia atrás, aplicados a mano antes de subir el código, para que el código nuevo y el viejo convivan.
+
+### Pruebas
+
+Las pruebas no se hicieron contra los servicios desplegados: corrieron en local con los límites de Render Free (0.1 CPU y 512 MB). Aquí van los hallazgos que afectan a la infraestructura.
+
+#### k6 contra el límite del plan
+
+- **Pruebas antes (hallazgos, 2026-11-22):** con 300 y 500 usuarios el contenedor se satura. API de la tienda: 34.9 % de fallos con 500; backoffice: 55.9 % con 300 y 79.3 % con 500; login masivo: 98.8 % y 99.6 % de fallos. Cada endpoint tardaba de 10 a 40 ms solo; el resto es cola en 0.1 CPU. Caben menos de 2 logins por segundo.
+- **Correcciones:** el banco de pruebas reproduce los límites de Render Free; se midió también con el limitador de tasa encendido (los primeros 20 logins de una IP dan 200 y desde el 21 dan 429 con `Retry-After: 60`). Un perfil de CPU mostró el contenedor al tope, con la mitad del tiempo dentro de la transacción por petición que aplica RLS. La única corrección real de la ronda fue el costo del hash del usuario de prueba (login masivo con 100 usuarios de 84.0 % a 24.9 % de fallos; ese detalle va en la sección de la API).
+- **Descartado por riesgo:** reducir las idas y vueltas a Postgres tocaría el aislamiento por tenant, y la ganancia no está medida.
+- **Pruebas después (resultados):** con 300 usuarios, backoffice 50.4 % y login masivo 91.9 % de fallos; con 500, API de la tienda 42.2 %, backoffice 80.2 % y login 97.5 %. El techo se confirma como límite del plan, no de código. Cuánto mejoraría un plan con más CPU: no medido. Diferencias de 100 a 300 ms entre corridas son ruido (una corrida por nivel, en una laptop compartida).
+
+**Reportes:** [Resumen k6 del límite del plan (solo cloud)](/assets/reports/essenza/cloud/k6-cloud-resumen.html) · [Backoffice 500 antes](/assets/reports/essenza/load/before-load-backoffice-500.html) / [después](/assets/reports/essenza/load/after-load-backoffice-500.html) · [API de la tienda 500 antes](/assets/reports/essenza/load/before-load-storefront-500.html) / [después](/assets/reports/essenza/load/after-load-storefront-500.html) · [Login masivo 500 antes](/assets/reports/essenza/load/before-load-login-storm-500.html) / [después](/assets/reports/essenza/load/after-load-login-storm-500.html)
+
+#### OWASP ZAP y Render
+
+- **Pruebas antes (hallazgo):** las cabeceras de seguridad del backoffice (CSP, `X-Frame-Options`, `nosniff`) están en `public/_headers`, sintaxis de Cloudflare Pages. El backoffice corre en Render Static Site, que ignora ese archivo. ZAP las vio solo sobre `vite preview`, no sobre Render.
+- **Correcciones:** hay que configurarlas en el panel de Render (reglas de cabeceras y la reescritura `/*` a `/index.html`). No se aplicó.
+- **Pruebas después (resultados):** no medido: no se volvió a escanear contra Render. Además, el escaneo local no pasa por Cloudflare, así que las cabeceras de borde de la tienda pueden diferir.
+- Los resultados de ZAP por componente están en las secciones de la tienda, el backoffice y la API.
+
+#### Migraciones
+
+- Se comprobaron contra un Postgres desechable, y un test compara el esquema de goose con SQL plano. No se probaron contra Neon desplegado: no medido.
+
+</div>
+
+<div data-lang="en">
+
+## General overview
+
+Essenza is a multi-tenant SaaS for perfume stores: each business gets its own public storefront and admin panel, and all of them share one API and one database. Isolation between businesses is enforced by PostgreSQL, not only by application code.
+
+**What was built**
+
+- **Storefront:** Astro with server-side rendering (SSR) on a Cloudflare Worker, built for SEO.
+- **Back office:** React + TypeScript + Vite with Tailwind CSS.
+- **API:** Go with Fiber and a hexagonal architecture.
+- **Database:** PostgreSQL 17 on Neon, with Row Level Security to isolate each tenant.
+
+**How it was validated**
+
+- SonarQube on the three projects (API, storefront and back office).
+- OWASP ZAP on the API, the back office and the storefront.
+- k6 for load, with the API limited like Render Free (0.1 CPU and 512 MB).
+- Vitest and Playwright (572 Vitest tests in the storefront and 714 in the back office, as of 2026-11-21).
+
+**Where it is deployed**
+
+- Neon: the database and, in a second project, the image storage.
+- Render: the API (Web Service with Docker) and the back office (Static Site).
+- Cloudflare: the storefront as a Worker.
+- Brevo: transactional mail over HTTPS.
+
+![Essenza architecture](/assets/img/projects/essenza/essenza-arquitectura.png)
+
+![SonarQube dashboard with the three projects](/assets/img/projects/essenza/sonarqube-three-projects.png)
+
+![SonarQube dashboard before the corrections](/assets/img/projects/essenza/sonarqube-before-dashboard.png)
+
+![SonarQube dashboard after the corrections](/assets/img/projects/essenza/sonarqube-after-dashboard.png)
+
+## Storefront
+
+Astro with server-side rendering on a Cloudflare Worker (one per business). Priorities: SEO and light pages. Changes made in the back office show up without rebuilding or redeploying the storefront.
+
+### What was built
+
+- Landing, categories (`/categoria/<slug>/`) and product page, each with a real URL, its own canonical, a dynamic `sitemap.xml` and a real 404 status with suggestions.
+- Light pages: the landing shows 12 cards per section and a numbered pager ("Page N of M"); products that do not fit live at `/categoria/<slug>/?pagina=N`.
+- Filters over the whole catalog (gender, brand, price, exclusives, sort) as a GET form that works without JavaScript. With JavaScript, the pager and filters swap only the block that changes.
+- Product with a gallery of up to 5 photos with zoom, size presentations, a "Sold out" badge (the API never exposes the count) and reviews in a modal with no captcha.
+- A Google map only when the business set a location, brand logos fetched from the API (with a local fallback), a share image and JSON-LD structured data.
+- Reviews carousel, visitor tracking with a persistent id (DoNotTrack respected) and an edge cache that the API purges after every write.
+
+### Technical decisions
+
+- **SSR on a Worker instead of a static site.** Owners edit products from the back office; a static site would need a rebuild each time. The cost: the Worker has CPU and subrequest limits and relies on the cache to be fast (real CPU on the free plan was not measured).
+- **Edge cache with a purge "generation".** The Cache API cannot delete everything; bumping a number in the key orphans every entry. But Cloudflare's cache is per data center: the one that gets the purge is cleared at once and the rest converge by TTL, up to 5 minutes.
+- **Short, different TTLs.** Pages 300 s, filtered listings 60 s, 404 30 s, and the browser always revalidates (`max-age=0`).
+- **Normalized cache key.** Only `pagina`, `tamano` and the filters go in, lowercase and in a fixed order; so `utm_*` and `fbclid` share the clean entry. An invalid value answers 302 to the normalized URL.
+- **One render per cold URL** (`src/middleware.ts`). If many visitors ask for the same uncached page at once, one renders and the others wait. It only holds per Worker instance.
+- **Light pages and server-side pagination.** With 300 products the landing was 1.27 MB of HTML; now about 142 KB, and the product page went from 153 KB to 34 KB. The cost: products past the first page live at another URL.
+- **Filters with `noindex,follow` and a canonical to the unfiltered list.** Filters do not dilute SEO or fill the sitemap. The unfiltered list is indexed and its page N is canonical to itself.
+- **Progressive enhancement.** Every pager circle and the "Filters" button are real links; if the script fails, normal navigation takes over. The cost is keeping two paths per control.
+- **No captcha on reviews.** Cloudflare Turnstile was removed end to end. Spam is held back by a honeypot, a per-IP limit in the API and moderation in the back office; the owner accepted weaker protection.
+- **Strict CSP without `unsafe-inline` on scripts.** Astro computes SHA-256 hashes of inline scripts and styles; the Worker adds the exact origins for images, the API and the map. `style-src-attr 'unsafe-inline'` remains because `style=""` attributes cannot be hashed.
+- **Per-request data, no in-memory cache.** Each request fetches its data once and keeps nothing; the only cache is the edge one.
+- **No custom domain.** The storefront lives on `workers.dev`, so `PUBLIC_SITE_URL` must match that URL exactly; that the Cache API works on `workers.dev` is not confirmed.
+
+### Tests
+
+#### SonarQube (project `frontoffice-saas-stores`)
+
+**Tests before (findings).** 2026-11-21, "Sonar way" rules: 13 open issues (3 bugs, 2 vulnerabilities, 8 code smells), reliability D and security C. The most serious: 6 backtracking regexes that could hang the server on long inputs (`S8786`), a `sort()` without a comparator (`S2871`), a Promise used as a condition, always true, in the reviews carousel (`S6544`) and pseudorandom generators for visit ids (`S2245`).
+
+**Corrections.**
+- 11 were fixed with code: the 6 regexes became linear trimming in `src/lib/text.ts` (with a test that compares them against the original regex, including a 100,000-slash input); an explicit comparator that keeps the code-unit order so canonical URLs do not change; the carousel condition now checks `document.fonts`; `Number.NaN`; ids with `crypto.getRandomValues`; and a useless `try/catch` removed.
+- 2 were not fixed: they are justified exceptions in `sonar-project.properties`. The email regex (input capped at 254 characters and Sonar still flags the shape) and a `Math.random` as a last resort when `crypto` is missing (analytics ids, never secrets). An exception hides the warning; it does not fix it.
+- In an intermediate pass (round 2) 2 were still open, both `S2245`.
+
+**Tests after (results).** 13 to 0 open, reliability D to A and security C to A, with 572 Vitest tests in 44 files and `astro check` with no errors or warnings. The Quality Gate went from OK to ERROR only because of new-code coverage (0 % against a minimum of 80 %): coverage is not measured because no test report is sent to Sonar. The security hotspot detail could not be read with the analysis token (the count is 0).
+
+**Reports.** [Storefront SonarQube report (before and after)](/assets/reports/essenza/store/sonarqube-store.html)
+
+#### OWASP ZAP (ZAP 2.17.0, production build)
+
+**Tests before (findings).** 2026-11-21: 3 Medium CSP alerts (wildcard, `script-src` and `style-src` with `unsafe-inline`), 1 real Low (`nosniff` missing on the `/_astro/*` files) and 1 more Low plus 5 informational ones, which are false positives or notices. In total 2 real problems, both headers. No injection or XSS; the potential XSS alert was checked by hand and Astro escapes the parameter. Also, 3 Playwright tests were failing (with and without ZAP): horizontal scroll on the phone, the landing filter sheet and `?orden=zzz&genero=zzz` returning 200 instead of 302. 33 passed, 3 failed and 1 was skipped.
+
+**Corrections.**
+- Round 1: CSP with `default-src`, `script-src`, `style-src`, `img-src`, `connect-src`, `font-src` and `frame-src` in `security-headers.ts` (with tests) and `nosniff` for `/_astro/*` in `public/_headers` (`fdf9e11`).
+- Round 2: Astro's native CSP with SHA-256 hashes and `img-src` limited to the image bucket origin (`7453566`).
+- Same round: the long FAQ URLs widened the page on the phone (`overflow-wrap` and `min-width: 0`) and the cache served a page with invalid values instead of redirecting (the cache is now skipped for those URLs, with a test).
+
+**Tests after (results).** No Medium alerts and no `nosniff` alert. 1 Low remains (a numeric constant inside the hero JS, false positive) and 3 informational ones from the storefront, plus 2 informational ones from the public API seen from the storefront. Playwright through ZAP went from 33 / 3 / 1 to 36 / 0 / 1 (pass / fail / skipped). Limits: ZAP does not analyze the DOM, the local preview does not go through Cloudflare (edge headers may differ) and role and tenant authorization is not covered.
+
+![ZAP: spider on the storefront](/assets/img/projects/essenza/zap-spider-storefront.png)
+
+![ZAP: active scan of the storefront](/assets/img/projects/essenza/zap-active-scan-storefront.png)
+
+**Reports.** [Findings from the "before" (storefront only)](/assets/reports/essenza/store/zap-store-hallazgos.html) · [Before/after comparison (storefront only)](/assets/reports/essenza/store/zap-store-antes-despues.html). The full ZAP reports are not published because they contain a test account token. The two pages are written in Spanish.
+
+#### k6 (real pages with a cold edge cache, API limited to 0.1 CPU and 512 MB)
+
+**Tests before (findings).** 2026-11-20: at 50 users p95 was 4.6 s; at 100 users, 13.5 s with 1.9 % failures and 989 requests served in 40 s; at 150 users, 17.4 s with 11 % failures. Each visitor rendered the same cold page on their own, with several API calls.
+
+**Corrections.** One render per URL in the Worker (`src/middleware.ts`): the others wait and build their own response from shared data. The first version shared the whole `Response` and 4 of 5 concurrent requests failed; now only status, headers and bytes are shared. There is no automated test for this (it imports `cloudflare:workers`).
+
+**Tests after (results).**
+- First cycle: p95 of 2.5 s at 50 users and 1.7 s at 100, 0 % failures and 1,894 requests served. At 150 users there is no "after" measurement.
+- Second cycle (2026-11-22, production builds): at 100 users p95 went from 2.78 s to 2.46 s with 0 % failures in both; at 500 users failures went from 3.2 % to 2.5 %. The storefront did not change in that cycle, so these differences are noise, and the ceiling is the 0.1 CPU API.
+- Three repetitions at 100 users: p95 from 2.76 s to 2.87 s; a 100 to 300 ms difference does not count.
+- Real browser: LCP p95 from 1.68 s to 1.18 s, but broken requests appeared (1.3 %) because of a demo product image with no file (5 of 43 active images). With the development data repaired, 0 of 1,518 requests failed and LCP p95 was 1.37 s.
+- Limit: one shared laptop and one run per level; the cache cannot be guaranteed cold. The deployed Cloudflare service was not measured.
+
+**Reports.** [Storefront k6 summary](/assets/reports/essenza/store/k6-store-resumen.html) (in Spanish) · First cycle, 50 users: [before](/assets/reports/essenza/store/k6/before-render-pages-50.html) / [after](/assets/reports/essenza/store/k6/after-render-pages-50.html) · 100 users: [before](/assets/reports/essenza/store/k6/before-render-pages-100.html) / [after](/assets/reports/essenza/store/k6/after-render-pages-100.html) · [150 before](/assets/reports/essenza/store/k6/before-render-pages-150.html) · Second cycle, 100 users: [before](/assets/reports/essenza/store/k6/before-pages-100.html) / [after](/assets/reports/essenza/store/k6/after-pages-100.html) · 150: [before](/assets/reports/essenza/store/k6/before-pages-150.html) / [after](/assets/reports/essenza/store/k6/after-pages-150.html) · 300: [before](/assets/reports/essenza/store/k6/before-pages-300.html) / [after](/assets/reports/essenza/store/k6/after-pages-300.html) · 500: [before](/assets/reports/essenza/store/k6/before-pages-500.html) / [after](/assets/reports/essenza/store/k6/after-pages-500.html) · Browser: [before](/assets/reports/essenza/store/k6/before-browser-storefront.html) / [after](/assets/reports/essenza/store/k6/after-browser-storefront.html) / [after, data repaired](/assets/reports/essenza/store/k6/after2-browser-storefront.html) · Repetitions at 100 users: [1](/assets/reports/essenza/store/k6/rep1-pages-100.html) · [2](/assets/reports/essenza/store/k6/rep2-pages-100.html) · [3](/assets/reports/essenza/store/k6/rep3-pages-100.html)
+
+#### Unit tests and Playwright
+
+- 572 Vitest tests (44 files) and `astro check` with no errors, measured on 2026-11-21; the tests grew afterwards and there is no newer count. Most rules are pure functions in `src/lib/` with a `*.test.ts` next to them.
+- Playwright for the storefront and mobile storefront (logo, pager, categories, product, 404, phone layout): with ZAP as a proxy, 33 passed before and 36 after the corrections, with 1 skipped.
+- No automated test: the cache and single-render middleware, and the real Worker CPU on the free plan was not measured.
+
+## Back office
+
+Admin panel in React + TypeScript + Vite, with its own design system on Tailwind. It is deployed as a Render Static Site and talks to the API over HTTPS.
+
+### What was built
+
+- Sections driven by a single registry (routes, menu and breadcrumb) and role permissions that come from the API.
+- Products with a type and 1 to 20 presentations (size, price and private stock), up to 5 photos and drag-to-reorder.
+- A PDF/PNG catalog generator in the browser, with 3 to 5 products per row and only active products with stock.
+- Business data with a logo, icon and wordmark per tenant; reviews with moderation; FAQs, contacts and articles.
+- Dashboard with stats by period and a visitors section; roles, users and, for the platform, tenant creation and deactivation.
+- A 3-step password recovery flow and "My profile".
+
+### Technical decisions
+
+- Screens hard to test → a pure `logic.ts` per section (filters, validation, payloads) tested with Vitest → 714 fast tests with no DOM.
+- Converting photos on the free API took ~1 min and ran out of memory → WebP conversion in the browser (1600 px, quality 0.82) with a sequential queue → a valid upload answers in ~157 ms.
+- Free API with little CPU → TanStack Query with a per-area `staleTime` and invalidation by write → fewer repeated requests and no stale lists after saving.
+- Reordering with one request per row was slow → optimistic order with a single `PUT .../order` and rollback on failure → instant response.
+- Catalog without a rendering service → A4 pages as DOM, `html-to-image` and `jsPDF` → a PDF with no server load (needs CORS on the bucket).
+- Permissions that only hide buttons → the UI hides and the API enforces every permission again → no reliance on the interface.
+- XSS risk stealing the session → token in `sessionStorage` and a strict CSP with headers → ZAP with no Medium alerts.
+- Email regex copied in 4 files → one `isEmailShape` capped at 254 characters → a single copy to maintain.
+
+### Tests
+
+Every report in this part contains back office data only: they were split out of the reports that mixed API, storefront and back office.
+
+#### SonarQube (project `backoffice-saas-stores`)
+
+- **Tests before (findings), 2026-11-21:** 20 open (2 bugs, 18 code smells), reliability C. They were 10 backtracking regexes, 2 un-awaited promises on sign-out, 2 `parseInt` and 6 accessibility warnings.
+- **Corrections:** 14 with code: 6 regexes to linear trimming (`text.ts` with `joinUrl`, 0 differences against the original regex), a centralized email regex, `void navigate(...)`, `Number.parseInt` and the tooltip trigger changed from `span` to `button`.
+- **Corrections (exceptions, not counted as fixes):** 6 justified: the remaining email regex (254-character cap) and 5 accessibility warnings on correct code (keyboard-focusable scroll areas, tablist, decorative loading rows, a menu that already focuses).
+- **Tests after (results):** 0 open and reliability A, with 714 tests and `tsc` clean. The Quality Gate stayed at ERROR because of new-code coverage (0 % against a minimum of 80 %): coverage is not sent to Sonar. The tooltip button was not tested by hand with a keyboard.
+
+**Reports:** [Back office SonarQube (before and after)](/assets/reports/essenza/backoffice/sonarqube-backoffice.html)
+
+#### OWASP ZAP (production build served with `vite preview`)
+
+A spider cannot discover the routes of a SPA, so it was walked with Playwright going through the ZAP proxy.
+
+- **Tests before (findings), 2026-11-21:** 6 distinct alerts. 3 real: missing CSP (Medium), no anti-clickjacking (Medium) and no `nosniff` (Low). The rest: a constant in the bundled JS, a library comment and an informational notice that it is a SPA. Playwright through ZAP: 49 of 49 tests pass.
+- **Corrections:** strict CSP, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` and `Permissions-Policy` (`1e1ccd7`). In round 2, `style-src 'self'` plus `style-src-attr 'unsafe-inline'` for the chart `style=""` attributes (`d01683b`).
+- **Corrections (tried and discarded):** a global middleware that stripped `' = < >` from all text broke 4 tests, deleted legitimate data and ZAP kept flagging; it was reverted.
+- **Tests after (results):** 0 Medium, 1 Low (constant, false positive) and 2 informational; Playwright through ZAP passed 49/49. The headers were tested on `vite preview`; on Render they are still unverified, because Render ignores the `_headers` file (Cloudflare Pages syntax) and they have to be set in its dashboard.
+
+**Reports:** [Before/after comparison](/assets/reports/essenza/backoffice/zap-backoffice-antes-despues.html) · [Findings from the "before"](/assets/reports/essenza/backoffice/zap-backoffice-hallazgos.html). The full ZAP reports are not published because they contain tokens from the test accounts. The report pages themselves are in Spanish.
+
+#### k6 (back office screens and real browser)
+
+API with the Render Free limits (0.1 CPU and 512 MB), back office in local production mode, 2026-11-22.
+
+- **Tests before (findings):** screens with p95 of 1.60 s at 100 users (target 800 ms) and 55.9 % failures at 300. In the browser, 2 of 5 sessions did not finish the login in 30 s and 5.6 % of requests failed.
+- **Corrections:** the test user had an old argon2id hash (the cost is stored with the hash), updated without touching code; the CSP is built from `VITE_API_URL`; a favicon was added (`700a2aa`), whose 404 explained every failed browser request.
+- **Tests after (results):** p95 of 1.48 s at 100 users, no clear trend (100 to 300 ms of noise; over 3 repetitions the spread goes from 16 % to 151 %). In the browser, from 7 to 21 iterations with no login timeouts, 0 of 537 failed requests and LCP p95 from 1.31 s to 1.14 s.
+- **Photos from the UI:** saving a photo with 3 windows went from 2.64 s to 2.06 s (1.66 s after the favicon) and with 5 windows from 6.72 s to 2.99 s (2.92 s after the favicon).
+- **Not corrected:** screens at 300 and 500 users (50.4 % and 80.2 % failures) because of the free CPU ceiling. A CPU profile showed the container at its limit (8.75 % out of a maximum of 10 %). It was not tested against the back office deployed on Render.
+
+**Reports:** [k6 summary for the back office](/assets/reports/essenza/backoffice/k6-backoffice-resumen.html) · Screens 100: [before](/assets/reports/essenza/backoffice/k6/before-load-backoffice-100.html) / [after](/assets/reports/essenza/backoffice/k6/after-load-backoffice-100.html) · 150: [before](/assets/reports/essenza/backoffice/k6/before-load-backoffice-150.html) / [after](/assets/reports/essenza/backoffice/k6/after-load-backoffice-150.html) · 300: [before](/assets/reports/essenza/backoffice/k6/before-load-backoffice-300.html) / [after](/assets/reports/essenza/backoffice/k6/after-load-backoffice-300.html) · 500: [before](/assets/reports/essenza/backoffice/k6/before-load-backoffice-500.html) / [after](/assets/reports/essenza/backoffice/k6/after-load-backoffice-500.html) · Browser: [before](/assets/reports/essenza/backoffice/k6/before-browser-backoffice.html) / [after](/assets/reports/essenza/backoffice/k6/after-browser-backoffice.html) / [after the favicon](/assets/reports/essenza/backoffice/k6/after2-browser-backoffice.html) · Photo upload 3 windows: [before](/assets/reports/essenza/backoffice/k6/before-browser-upload-3.html) / [after](/assets/reports/essenza/backoffice/k6/after-browser-upload-3.html) / [after the favicon](/assets/reports/essenza/backoffice/k6/after2-browser-upload-3.html) · Photo upload 5 windows: [before](/assets/reports/essenza/backoffice/k6/before-browser-upload-5.html) / [after](/assets/reports/essenza/backoffice/k6/after-browser-upload-5.html) / [after the favicon](/assets/reports/essenza/backoffice/k6/after2-browser-upload-5.html)
+
+#### Vitest and Playwright
+
+- 714 Vitest tests and `tsc` clean (2026-11-21). The test count before the Sonar corrections was not measured.
+- Playwright for the back office: login, every section, pager, catalog generator with PDF/PNG download, the save bar and changes that persist and are restored. With ZAP as a proxy 49 of 49 pass, before and after the header corrections.
+
+## API
+
+Go API with Fiber, feature-first hexagonal architecture and PostgreSQL (Neon) with Row Level Security. It runs on Render (free plan: 0.1 CPU and 512 MB), with the database on Neon and mail through the Brevo HTTPS API.
+
+### What was built
+
+- One folder per feature with use cases that know nothing about Fiber, pgx or AWS; an architecture test checks the layer rules.
+- Tenant isolation with forced RLS and an `app_api` role that owns no tables and has no `BYPASSRLS`.
+- Authentication with JWT and a session checked on every admin request, argon2id, roles and permissions, and a platform superadmin.
+- Catalog with product types and presentations, private stock, anonymous reviews, FAQs, contacts, articles and visitor stats.
+- Images validated as WebP (at most 5 per product) and stored under a unique key; soft delete everywhere.
+- Public reads with ETag, storefront purge after every write, rate limits and load shedding.
+- Validation: unit, integration and architecture tests, `go build`, `go vet`, SonarQube, OWASP ZAP and k6 with the Render limits.
+
+### Technical decisions
+
+- Isolation should not depend on remembering a `WHERE tenant_id` → RLS with `FORCE` and composite foreign keys `(tenant_id, x_id)` → the database rejects cross-tenant references.
+- A role created in the Neon console inherits `BYPASSRLS` → the role is created with SQL and `rolbypassrls = false` is checked → isolation cannot be switched off silently.
+- A stateless JWT cannot sign out on a password change → session check (permissions, `pwd`, active tenant) on every admin request → sign-out is immediate.
+- Architecture decays unnoticed → an architecture test that fails on a violation → the rules hold in CI.
+- "Nothing is deleted" → `deleted_at` and `DELETE` revoked on the last tables → the database refuses a hard delete.
+- Two simultaneous uploads could pass the 5-photo limit → count under `FOR UPDATE` → the limit holds.
+- Login cost 3.6 s of CPU on 0.1 CPU → argon2id at the OWASP minimum in a bounded pool → 0.7 s per login and an immediate 503 if the queue is full.
+- Render blocks SMTP ports → mail through the Brevo HTTPS API → password recovery and invitation resend working.
+- Repeated reads on a 0.1 CPU API → `ETag` with 304 and `s-maxage=30` plus 60 s of `stale-while-revalidate` → less work for the origin.
+- Bursts with Neon behind a pooler → `QueryExecModeExec` with no server-side prepared statements → works with pgbouncer.
+
+### Tests
+
+#### API tests (`go test`, `go vet`)
+
+- `go build`, `go vet` and `go test` of the API were green on 2026-11-21. There is no total test count measured for this page.
+- Unit tests of the use cases with in-memory fakes, the architecture test, hashing, rate limit, tenant resolution with 50 concurrent calls and the exact route list.
+- Integration tests on a real Postgres with RLS: tenant isolation, RBAC and role escalation rules, products, images, reviews, load shedding and storefront purge. Without a reachable test Postgres they are skipped.
+- 4 password-policy integration tests were already failing before the SonarQube round; they were not touched.
+- Authorization by role and tenant is tested here, with the integration tests, because ZAP does not cover it.
+
+#### SonarQube (project `api-saas-stores`)
+
+**Tests before (findings), 2026-11-21**
+
+- 7 open issues: 2 bugs (`go:S1764`, identical expressions in tests) and 5 vulnerabilities (`python:S2245`, pseudorandom generator in a fixtures script).
+- Reliability C, security C, maintainability A, Quality Gate OK, 12,095 lines, coverage 0% (it is not sent to Sonar).
+
+**Corrections**
+
+- 2 with code: the repeated calls in the reset-code hash and rate limit tests were moved into named variables. They are test files, not production code.
+- 5 justified exceptions, which do not count as a fix: the e2e fixtures script uses `random` with a fixed seed to always produce the same images; the exception covers only `e2e/scripts`.
+- Security hotspots could not be read in detail with the analysis token (Sonar counts 0).
+
+**Tests after (results), 2026-11-21**
+
+- 0 open issues, reliability A, security A, maintainability A and Quality Gate OK. Coverage stays at 0% in Sonar and duplication at 0.2%, as before.
+- `go test` of the touched packages (auth and ratelimit) was green.
+
+**Reports:** [SonarQube for the API: before and after](/assets/reports/essenza/api/sonarqube-api.html)
+
+#### OWASP ZAP (active scan, API policy, ZAP 2.17.0)
+
+**Tests before (findings), 2026-11-21**
+
+- 3 distinct alerts: SQL Injection (High, 9 instances), Private IP Disclosure (Low, 1) and Authentication Request Identified (Info, 2).
+- The first, hand-made scan was shallow: only 2.2% of responses were 2xx, because the bodies were filler and the ids fake.
+- Effort of the final scan: 68,640 requests in the main pass, 1,438 in the platform pass and 70,137 in the DELETE pass.
+
+**Corrections**
+
+- To the scan: OpenAPI generated with real bodies and ids, DELETE operations in a separate file, platform routes with a superadmin user, `change-password` excluded and a valid image upload seeded by hand. With that, 62 of 74 operations answered 2xx.
+- To the finding: SQL Injection is a false positive (ZAP compares 201 against 409 for a duplicate name); an integration test stores `' OR 1=1 --` and checks it stays literal text (`67430c1`). The private IP is the WSL gateway of the dev environment.
+
+**Tests after (results), 2026-11-21**
+
+- The same 3 alerts with the same counts (9, 1 and 2), as expected because the API logic did not change.
+- The main pass sent about 21,400 requests against 68,640 in the "before"; the cause is unknown.
+- Not covered: authorization by role and tenant, tampered JWT, spoofed `X-Tenant`, and the rate limit was off. No manual curl test is on record: not measured.
+
+![ZAP: importing the API OpenAPI](/assets/img/projects/essenza/zap-import-openapi.png)
+
+![ZAP: API policy in the active scan](/assets/img/projects/essenza/zap-active-scan-api-policy.png)
+
+![ZAP: excluding change-password from the attack](/assets/img/projects/essenza/zap-exclude-change-password.png)
+
+**Reports:** [Findings before](/assets/reports/essenza/api/zap-api-hallazgos.html) · [Before and after comparison](/assets/reports/essenza/api/zap-api-antes-despues.html)
+
+#### k6 (API in a container with the Render Free limits)
+
+**Tests before (findings)**
+
+- 2026-11-22: the login storm failed 84.0% / 90.6% / 98.8% / 99.6% at 100 / 150 / 300 / 500 users; the public API read by the storefront had p95 from 820 ms to 2.37 s and 34.9% failures at 500.
+- First cycle, 2026-11-20: the full argon2id hash cost about 3.6 s per login and converting a photo in the API took about 60 s: with 5 uploads all of them hit the timeout (27.8% failures) and with 10 the container died of memory (60.6%).
+
+**Corrections**
+
+- Hash at the OWASP minimum: from 3.6 s to 0.7 s per login (10 logins in a row). In the 2026-11-22 cycle only the test user's hash was updated, because a stored hash keeps its cost.
+- WebP converted in the browser and the API only validates. Lossy libwebp in the API was tried and not adopted: it also ran out of memory at 10 uploads.
+- Tried and not adopted: a shorter hash queue trades 40 s waits for fast failures but lets 13% to 43% fewer people in.
+
+**Tests after (results)**
+
+- Login storm with 100 users: from 84.0% to 24.9% failures.
+- Photo uploads with 5 / 10 / 25 users: p95 of 330 ms / 567 ms / 1.49 s and 0% failures (first cycle).
+- Across 3 repetitions, the 100-user login storm fails between 22% and 31%, and p95 latencies vary a lot, so differences of 100 to 300 ms are noise.
+- Limit: at 300 and 500 users the API fails 35% to 80% and login fails 92% and 97%; with 0.1 CPU fewer than 2 logins per second fit.
+
+**Reports:** [k6 summary for the API](/assets/reports/essenza/api/k6-api-resumen.html) · Login storm 100 users: [before](/assets/reports/essenza/api/k6/before-load-login-storm-100.html) / [after](/assets/reports/essenza/api/k6/after-load-login-storm-100.html) · Storefront API 500 users: [before](/assets/reports/essenza/api/k6/before-load-storefront-500.html) / [after](/assets/reports/essenza/api/k6/after-load-storefront-500.html) · Photo upload 10 users: [before](/assets/reports/essenza/api/k6/before-heavy-writes-10.html) / [after](/assets/reports/essenza/api/k6/after-heavy-writes-10.html) · First cycle, 5 users: [before](/assets/reports/essenza/api/k6/first-cycle/before-render-heavy-writes-5.html) / [after](/assets/reports/essenza/api/k6/first-cycle/after-render-heavy-writes-5.html)
+
+## Cloud and infrastructure
+
+Everything runs on free plans, with a written runbook instead of Terraform: there are about five one-off resources, Render's free plan cannot be created with its Terraform provider and the Neon providers were archived or in beta (checked 2026-11-12).
+
+### What was built
+
+- **Database:** one Neon project with Postgres 17 in Ohio, with a pooled connection for the API and a direct one for migrations.
+- **Images:** a second Neon project with Object Storage (S3 compatible, public read). It is not Cloudflare R2; the API's `R2_*` variables keep that name for historical reasons.
+- **API:** Render Web Service with Docker, free plan (0.1 CPU and 512 MB), in Ohio.
+- **Back office:** Render Static Site. **Storefront:** Cloudflare Worker deployed from Git.
+- **Mail:** Brevo over HTTPS, with no custom domain: everything lives on Render and Cloudflare subdomains.
+- There are no GitHub Actions workflows: Render and Cloudflare build straight from the repositories.
+
+![API service configuration on Render](/assets/img/projects/essenza/render-api-service-config.png)
+
+### Technical decisions
+
+- **Runbook instead of Terraform:** the deploy is documented step by step. The trade-off is that it cannot be reproduced from code.
+- **Database role created with SQL:** a role created in the Neon console inherits `BYPASSRLS` and would silently switch isolation off. It is created with SQL and `rolbypassrls` is checked to be `false`.
+- **Pooler for the API, direct connection for migrations:** the pooler does not support prepared statements, so the API does not use them.
+- **Images in a separate project:** Neon gives 5 GB of data egress per project, shared between database and images. Splitting them means a traffic spike only affects photos. The database stores only the object key.
+- **Mail with Brevo:** Render blocks SMTP ports (25, 465 and 587), so Gmail SMTP never worked there. Brevo uses an HTTPS API and needs no domain. With a `@gmail.com` sender, Brevo rewrites the visible sender to its own domain and spam placement is more likely. The Gmail API stays as an alternative but needs an owned domain to publish the app.
+- **Layered cache:** browser (`max-age=0`, always revalidates), Cloudflare Worker (300 s on pages, 60 s on filtered listings, 30 s on 404), API (`s-maxage=30` plus 60 s of `stale-while-revalidate`, with ETag and 304) and images immutable for a year thanks to unique keys.
+- **Limited purge:** the API tells the storefront with `POST /__purge` after every write, but Cloudflare's cache is per data center. The purge clears the one that receives it and the rest converge by TTL, up to 5 minutes.
+- **Free-plan limits:** the API sleeps after 15 minutes without traffic and takes about a minute to wake; a `/health` ping every 5 minutes that does not wake Neon was planned. Nothing records that the ping is active.
+- **Secrets only where they are used:** the API gets only the restricted role, the purge secret lives only on the Worker and the `PUBLIC_*` and `VITE_*` variables carry no secrets.
+- **Forward-only migrations:** backward-compatible goose files applied by hand before shipping the code, so new and old code coexist.
+
+### Tests
+
+Nothing was tested against the deployed services: the tests ran locally with the Render Free limits (0.1 CPU and 512 MB). These are the findings that affect the infrastructure.
+
+#### k6 on the plan ceiling
+
+- **Tests before (findings, 2026-11-22):** at 300 and 500 users the container saturates. Storefront API: 34.9 % failures at 500; back office: 55.9 % at 300 and 79.3 % at 500; login storm: 98.8 % and 99.6 % failures. Each endpoint took 10 to 40 ms alone; the rest is queueing on 0.1 CPU. Fewer than 2 logins per second fit.
+- **Corrections:** the test bench reproduces the Render Free limits; it was also measured with the rate limiter on (the first 20 logins from an IP return 200 and from the 21st they return 429 with `Retry-After: 60`). A CPU profile showed the container at its limit, with half of the time inside the per-request transaction that applies RLS. The only real fix of the round was the hash cost of the test user (login storm at 100 users from 84.0 % to 24.9 % failures; that detail is in the API section).
+- **Discarded for risk:** reducing round trips to Postgres would touch tenant isolation, and the gain is not measured.
+- **Tests after (results):** at 300 users, back office 50.4 % and login storm 91.9 % failures; at 500, storefront API 42.2 %, back office 80.2 % and login 97.5 %. The ceiling is confirmed as a plan limit, not a code limit. How much a plan with more CPU would improve: not measured. Differences of 100 to 300 ms between runs are noise (one run per level, on a shared laptop).
+
+**Reports:** [k6 summary of the plan ceiling (cloud only)](/assets/reports/essenza/cloud/k6-cloud-resumen.html) · [Back office 500 before](/assets/reports/essenza/load/before-load-backoffice-500.html) / [after](/assets/reports/essenza/load/after-load-backoffice-500.html) · [Storefront API 500 before](/assets/reports/essenza/load/before-load-storefront-500.html) / [after](/assets/reports/essenza/load/after-load-storefront-500.html) · [Login storm 500 before](/assets/reports/essenza/load/before-load-login-storm-500.html) / [after](/assets/reports/essenza/load/after-load-login-storm-500.html)
+
+#### OWASP ZAP and Render
+
+- **Tests before (finding):** the back office security headers (CSP, `X-Frame-Options`, `nosniff`) live in `public/_headers`, Cloudflare Pages syntax. The back office runs on a Render Static Site, which ignores that file. ZAP saw them only on `vite preview`, not on Render.
+- **Corrections:** they have to be set in the Render dashboard (header rules and the `/*` to `/index.html` rewrite). Not applied.
+- **Tests after (results):** not measured: no rescan against Render. Also, the local scan does not go through Cloudflare, so the storefront's edge headers may differ.
+- ZAP results per component are in the storefront, back office and API sections.
+
+#### Migrations
+
+- They were checked against a throwaway Postgres, and a test compares the goose schema with plain SQL. They were not tested against the deployed Neon: not measured.
+
+</div>

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calidad de código: estado inicial (before)</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#59636e; --card:#f6f8fa; --line:#d1d9e0; --accent:#0969da; --crit:#cf222e; --maj:#bc4c00; --min:#7d6a00; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#151b23; --line:#30363d; --accent:#4493f8; --crit:#ff7b72; --maj:#ffa657; --min:#e3b341; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; } h2 { font-size:20px; margin:40px 0 12px; } h2 small { font-weight:400; color:var(--muted); font-size:14px; }
+  .lead { color:var(--muted); margin:0 0 20px; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; margin:12px 0; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .kpi b { display:block; font-size:22px; } .kpi span { color:var(--muted); font-size:12px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; vertical-align:top; padding:8px 10px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  th { color:var(--muted); font-weight:600; } td.num { text-align:center; font-weight:600; }
+  td.files code { font-size:12px; word-break:break-all; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; }
+  .tag { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:0 8px; font-size:11px; color:var(--muted); }
+  .tag.critical,.tag.blocker { color:var(--crit); border-color:var(--crit); } .tag.major { color:var(--maj); border-color:var(--maj); } .tag.minor { color:var(--min); border-color:var(--min); }
+  .note { color:var(--muted); font-size:13px; } nav a { color:var(--accent); margin-right:14px; }
+  @media (max-width:700px) { th:nth-child(2), td:nth-child(2) { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Calidad de código: estado inicial (before)</h1>
+  <p class="lead">SonarQube Community Build 26.11, análisis del 2026-11-21. Reglas "Sonar way". Cobertura sin medir en los tres proyectos (no se pasó reporte de tests).</p>
+  <div class="kpis">
+    <div class="kpi"><b>40</b><span>Issues abiertos en total</span></div>
+    <div class="kpi"><b>7</b><span>Bugs</span></div>
+    <div class="kpi"><b>7</b><span>Vulnerabilidades</span></div>
+    <div class="kpi"><b>26</b><span>Code smells</span></div>
+  </div>
+  <nav><a href="#api">API (Go + Fiber)</a><a href="#frontoffice">Storefront (Astro, store-a)</a><a href="#backoffice">Back office (React + Vite)</a></nav>
+  
+  <section id="api">
+    <h2>API (Go + Fiber) <small><code>api-saas-stores</code></small></h2>
+    <div class="kpis">
+      <div class="kpi"><b>OK</b><span>Quality Gate</span></div>
+      <div class="kpi"><b>7</b><span>Issues abiertos</span></div>
+      <div class="kpi"><b>2</b><span>Bugs (fiabilidad C)</span></div>
+      <div class="kpi"><b>5</b><span>Vulnerabilidades (seguridad C)</span></div>
+      <div class="kpi"><b>0</b><span>Code smells (mantenibilidad A)</span></div>
+      <div class="kpi"><b>0.0%</b><span>Cobertura</span></div>
+      <div class="kpi"><b>0.2%</b><span>Duplicación</span></div>
+      <div class="kpi"><b>12.095</b><span>Líneas de código</span></div>
+    </div>
+    <p class="sev"><span class="tag major">MAJOR 7</span></p>
+    <table>
+      <thead><tr><th>Regla</th><th>Qué significa</th><th>Casos</th><th>Dónde</th></tr></thead>
+      <tbody>
+      <tr>
+        <td><code>python:S2245</code><br><span class="tag major">MAJOR</span> <span class="tag">VULNERABILITY</span></td>
+        <td>Usa un generador pseudoaleatorio (`random`). Solo es un problema si el valor protege algo (token, clave, contraseña).</td>
+        <td class="num">5</td>
+        <td class="files"><code>e2e/scripts/make_fixtures.py:20</code><br><code>e2e/scripts/make_fixtures.py:20</code><br><code>e2e/scripts/make_fixtures.py:21</code><br><code>e2e/scripts/make_fixtures.py:22</code><br><code>e2e/scripts/make_fixtures.py:56</code></td>
+      </tr>
+      <tr>
+        <td><code>go:S1764</code><br><span class="tag major">MAJOR</span> <span class="tag">BUG</span></td>
+        <td>Los dos lados de un operador son la misma expresión (por ejemplo `x == x`), casi siempre un error de copia.</td>
+        <td class="num">2</td>
+        <td class="files"><code>internal/features/auth/usecases_test.go:245</code><br><code>internal/shared/ratelimit/ratelimit_test.go:53</code></td>
+      </tr></tbody>
+    </table>
+    <p class="note">Security hotspots: el conteo en Sonar es 0; el detalle no se pudo leer con el token de análisis (403 http://localhost:9500/api/hotspots/search?project=api-saas-stores&amp;ps=500&amp;p=1: {&quot;errors&quot;:[{&quot;msg&quot;:&quot;Insufficient privil).</p>
+  </section>
+
+  <section id="frontoffice">
+    <h2>Storefront (Astro, store-a) <small><code>frontoffice-saas-stores</code></small></h2>
+    <div class="kpis">
+      <div class="kpi"><b>OK</b><span>Quality Gate</span></div>
+      <div class="kpi"><b>13</b><span>Issues abiertos</span></div>
+      <div class="kpi"><b>3</b><span>Bugs (fiabilidad D)</span></div>
+      <div class="kpi"><b>2</b><span>Vulnerabilidades (seguridad C)</span></div>
+      <div class="kpi"><b>8</b><span>Code smells (mantenibilidad A)</span></div>
+      <div class="kpi"><b>0.0%</b><span>Cobertura</span></div>
+      <div class="kpi"><b>0.0%</b><span>Duplicación</span></div>
+      <div class="kpi"><b>3190</b><span>Líneas de código</span></div>
+    </div>
+    <p class="sev"><span class="tag critical">CRITICAL 1</span> <span class="tag major">MAJOR 11</span> <span class="tag minor">MINOR 1</span></p>
+    <table>
+      <thead><tr><th>Regla</th><th>Qué significa</th><th>Casos</th><th>Dónde</th></tr></thead>
+      <tbody>
+      <tr>
+        <td><code>typescript:S8786</code><br><span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span></td>
+        <td>Expresión regular con backtracking que puede volverse muy lenta con entradas largas (riesgo de ReDoS).</td>
+        <td class="num">7</td>
+        <td class="files"><code>src/lib/api/mappers.ts:70</code><br><code>src/lib/env.ts:28</code><br><code>src/lib/share-image.ts:12</code><br><code>src/lib/sitemap.ts:22</code><br><code>src/lib/sitemap.ts:32</code><br><code>src/lib/tracking.ts:315</code><br><code>src/lib/contact.ts:23</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S2245</code><br><span class="tag major">MAJOR</span> <span class="tag">VULNERABILITY</span></td>
+        <td>Usa `Math.random()`. Solo es un problema si el valor protege algo (token, id secreto).</td>
+        <td class="num">2</td>
+        <td class="files"><code>src/lib/tracking.ts:79</code><br><code>src/lib/tracking.ts:233</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S2871</code><br><span class="tag critical">CRITICAL</span> <span class="tag">BUG</span></td>
+        <td>`sort()` sin función de comparación ordena como texto por código de carácter, no alfabéticamente.</td>
+        <td class="num">1</td>
+        <td class="files"><code>src/lib/listing-query.ts:111</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S6544</code><br><span class="tag major">MAJOR</span> <span class="tag">BUG</span></td>
+        <td>Se usa una Promise dentro de un `if` sin `await`: una Promise siempre es verdadera.</td>
+        <td class="num">1</td>
+        <td class="files"><code>src/components/landing/reviews-carousel.ts:235</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S7773</code><br><span class="tag minor">MINOR</span> <span class="tag">CODE SMELL</span></td>
+        <td>Preferir `Number.NaN` / `Number.parseInt` sobre las globales. Estilo, bajo riesgo.</td>
+        <td class="num">1</td>
+        <td class="files"><code>src/lib/listing.ts:34</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S4822</code><br><span class="tag major">MAJOR</span> <span class="tag">BUG</span></td>
+        <td>`try/catch` que no captura nada porque la Promise ya tiene `.catch()`.</td>
+        <td class="num">1</td>
+        <td class="files"><code>src/lib/tracking.ts:298</code></td>
+      </tr></tbody>
+    </table>
+    <p class="note">Security hotspots: el conteo en Sonar es 0; el detalle no se pudo leer con el token de análisis (403 http://localhost:9500/api/hotspots/search?project=frontoffice-saas-stores&amp;ps=500&amp;p=1: {&quot;errors&quot;:[{&quot;msg&quot;:&quot;Insufficien).</p>
+  </section>
+
+  <section id="backoffice">
+    <h2>Back office (React + Vite) <small><code>backoffice-saas-stores</code></small></h2>
+    <div class="kpis">
+      <div class="kpi"><b>OK</b><span>Quality Gate</span></div>
+      <div class="kpi"><b>20</b><span>Issues abiertos</span></div>
+      <div class="kpi"><b>2</b><span>Bugs (fiabilidad C)</span></div>
+      <div class="kpi"><b>0</b><span>Vulnerabilidades (seguridad A)</span></div>
+      <div class="kpi"><b>18</b><span>Code smells (mantenibilidad A)</span></div>
+      <div class="kpi"><b>0.0%</b><span>Cobertura</span></div>
+      <div class="kpi"><b>0.6%</b><span>Duplicación</span></div>
+      <div class="kpi"><b>12.312</b><span>Líneas de código</span></div>
+    </div>
+    <p class="sev"><span class="tag major">MAJOR 18</span> <span class="tag minor">MINOR 2</span></p>
+    <table>
+      <thead><tr><th>Regla</th><th>Qué significa</th><th>Casos</th><th>Dónde</th></tr></thead>
+      <tbody>
+      <tr>
+        <td><code>typescript:S8786</code><br><span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span></td>
+        <td>Expresión regular con backtracking que puede volverse muy lenta con entradas largas (riesgo de ReDoS).</td>
+        <td class="num">10</td>
+        <td class="files"><code>src/lib/auth/reset.ts:23</code><br><code>src/sections/consejos/logic.ts:106</code><br><code>src/sections/productos/logic.ts:367</code><br><code>src/sections/productos/logic.ts:430</code><br><code>src/sections/usuarios/logic.ts:42</code><br><code>src/shell/profile-logic.ts:10</code><br><code>src/sections/tenants/logic.ts:51</code><br><code>src/sections/tenants/logic.ts:61</code><br><code>src/sections/tenants/logic.ts:63</code><br><code>src/lib/env.ts:7</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S6845</code><br><span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span></td>
+        <td>`tabIndex` en un elemento que no es interactivo. Accesibilidad.</td>
+        <td class="num">3</td>
+        <td class="files"><code>src/sections/dashboard/index.tsx:185</code><br><code>src/sections/dashboard/index.tsx:222</code><br><code>src/sections/productos/index.tsx:38</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S7773</code><br><span class="tag minor">MINOR</span> <span class="tag">CODE SMELL</span></td>
+        <td>Preferir `Number.NaN` / `Number.parseInt` sobre las globales. Estilo, bajo riesgo.</td>
+        <td class="num">2</td>
+        <td class="files"><code>src/sections/productos/catalogBackgrounds.ts:73</code><br><code>src/sections/contacto/embed.ts:22</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S9383</code><br><span class="tag major">MAJOR</span> <span class="tag">BUG</span></td>
+        <td>Promise sin `await`, `.catch` ni `.then` con manejo de error: un fallo queda sin reportar.</td>
+        <td class="num">2</td>
+        <td class="files"><code>src/sections/resenas/index.tsx:149</code><br><code>src/shell/Shell.tsx:145</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S6852</code><br><span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span></td>
+        <td>Un elemento con rol interactivo (`menu`, `tablist`) debe poder recibir foco. Accesibilidad.</td>
+        <td class="num">2</td>
+        <td class="files"><code>src/shell/ProfileMenu.tsx:92</code><br><code>src/ui/Tabs.tsx:50</code></td>
+      </tr>
+      <tr>
+        <td><code>typescript:S6825</code><br><span class="tag major">MAJOR</span> <span class="tag">CODE SMELL</span></td>
+        <td>`aria-hidden=&quot;true&quot;` en un elemento enfocable. Accesibilidad.</td>
+        <td class="num">1</td>
+        <td class="files"><code>src/ui/DataTable.tsx:103</code></td>
+      </tr></tbody>
+    </table>
+    <p class="note">Security hotspots: el conteo en Sonar es 0; el detalle no se pudo leer con el token de análisis (403 http://localhost:9500/api/hotspots/search?project=backoffice-saas-stores&amp;ps=500&amp;p=1: {&quot;errors&quot;:[{&quot;msg&quot;:&quot;Insufficient).</p>
+  </section>
+  <p class="note">El Quality Gate sale OK en los tres, pero no evaluó ninguna condición (la lista de condiciones viene vacía), probablemente porque en el primer análisis no hay "código nuevo" contra el cual comparar. Por eso el OK no dice que el código esté limpio; los ratings (A-E) y los issues sí cuentan todo el código.</p>
+</main>
+</body>
+</html>

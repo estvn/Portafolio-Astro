@@ -1,0 +1,97 @@
+---
+title: 'YT Automated Channels - Pipeline de datos y producción de video'
+title_en: 'YT Automated Channels - Data pipeline and video production'
+description: 'Proyecto personal de ingeniería de datos: ingesta desde la API de YouTube a un data lake, ETL a un data warehouse en estrella (PostgreSQL), modelo en Power BI y una fábrica local de videos con voz sintética, subtítulos y subida automatizada con n8n.'
+description_en: 'Personal data engineering project: ingestion from the YouTube API into a data lake, ETL into a star-schema data warehouse (PostgreSQL), a Power BI model and a local video factory with synthetic voice, subtitles and n8n upload automation.'
+image:
+  url: '/assets/img/projects/yt-automated-channels/yt-pipeline.png'
+  alt: 'Escenas de un video de Quiet Hour English con subtítulos bilingües'
+technologies: ["Python", "PostgreSQL", "Power BI", "n8n", "Podman", "ffmpeg", "Remotion", "YouTube Data API"]
+url: 'yt-automated-channels'
+category: 'personal'
+links:
+  github: ''
+  live: ''
+---
+
+<div data-lang="es">
+
+## Resumen
+
+Proyecto personal con dos mitades. Un pipeline de datos descubre canales de YouTube que crecen rápido en un nicho, guarda cada respuesta cruda de la API en un data lake y carga un data warehouse en estrella que consume Power BI. Una fábrica local de videos (guion, voz sintética, subtítulos karaoke, ffmpeg) sube el resultado con n8n. La idea: usar los datos para encontrar formatos que funcionan en **tres o más canales distintos** (patrón, no suerte) y replicarlos en canales propios.
+
+
+## Arquitectura
+
+![Pipeline de datos](/assets/img/projects/yt-automated-channels/yt-pipeline.png)
+
+YouTube Data API v3 alimenta un data lake (capa bronze: JSON crudo, nunca modificado), un ETL en Python limpia y carga PostgreSQL (capa gold, esquema en estrella) y Power BI lee de ahí. Lake y warehouse corren en contenedores Podman.
+
+![Esquema en estrella del data warehouse](/assets/img/projects/yt-automated-channels/dw-erd.png)
+
+Dos tablas de hechos (snapshot de video y de canal) comparten dimensiones de video, canal y fecha.
+
+## Lo más destacable
+
+- **Data lake + ETL + warehouse.** RustFS (compatible con S3) conserva el JSON crudo; `etl.py` carga PostgreSQL 17 con cargas idempotentes y snapshots solo de inserción, que son el historial de crecimiento.
+- **Selección de canales con regla explícita.** Canales creados hace 90–365 días con al menos dos videos de más de 90 días y más de 100k vistas, verificada con pruebas.
+- **Popularidad relativa a la edad.** Se guardan `age_hours` y `views_per_day` por snapshot, para no confundir un video nuevo con uno viejo.
+- **Power BI con 10 páginas generadas por código**, con filtros sincronizados y medidas explícitas.
+- **Fábrica de videos local y sin costo de voz.** Kokoro (CPU) genera la voz, faster-whisper da los tiempos por palabra y ffmpeg ensambla el mp4 con subtítulos en inglés y español.
+- **Subida automatizada con n8n** en Podman: sube el video, marca contenido sintético, miniatura, subtítulos y playlist.
+
+Datos reales: el pipeline cargó 7,494 videos y 641 canales en dos ejecuciones, y una nueva corrida omitió lo ya cargado. En una sola captura (ventana de 30 días, videos largos), los cuentos alcanzan 46% de tasa de hit (188 videos, 81 canales); sirve para comparar temas, no como cifra absoluta.
+
+
+## Decisiones clave
+
+- **Solo la API oficial, sin yt-dlp:** estable y dentro de los términos de YouTube.
+- **Python sin dbt:** pocas transformaciones; la capa silver vive en memoria.
+- **Estrella con dos hechos y dimensiones planas:** un único camino hacia la fecha simplifica DAX.
+- **Bases de datos fuera de OneDrive:** una base viva en una carpeta sincronizada se corrompe.
+- **Guion revisado por una persona y declaración de contenido sintético:** YouTube penaliza el contenido repetitivo masivo.
+
+
+</div>
+
+<div data-lang="en">
+
+## Summary
+
+A personal project with two halves. A data pipeline discovers fast-growing YouTube channels in a niche, stores every raw API response in a data lake and loads a star-schema data warehouse that Power BI reads. A local video factory (script, synthetic voice, karaoke subtitles, ffmpeg) uploads the result through n8n. The idea: use the data to find formats that work across **three or more distinct channels** (a pattern, not luck) and replicate them in channels of my own.
+
+> Status as of the project notes: ingestion, data lake, ETL and warehouse work; the Power BI dashboard is built and validated from files but had not yet been seen rendered; the daily run and the automatic brief are still pending.
+
+
+## Architecture
+
+![Data pipeline](/assets/img/projects/yt-automated-channels/yt-pipeline.png)
+
+The YouTube Data API v3 feeds a data lake (bronze layer: raw JSON, never modified), a Python ETL cleans and loads PostgreSQL (gold layer, star schema) and Power BI reads from there. Lake and warehouse run in Podman containers.
+
+![Data warehouse star schema](/assets/img/projects/yt-automated-channels/dw-erd.png)
+
+Two fact tables (video and channel snapshots) share video, channel and date dimensions.
+
+## Highlights
+
+- **Data lake + ETL + warehouse.** RustFS (S3-compatible) keeps the raw JSON; `etl.py` loads PostgreSQL 17 with idempotent loads and append-only snapshots, which are the growth history.
+- **Channel selection with an explicit rule.** Channels created 90–365 days ago with at least two videos older than 90 days and 100k+ views, checked by tests.
+- **Popularity relative to age.** `age_hours` and `views_per_day` are stored per snapshot, so a new video is not confused with an old one.
+- **Power BI with 10 pages generated from code**, with synced filters and explicit measures.
+- **Local video factory with no voice cost.** Kokoro (CPU) generates the voice, faster-whisper gives per-word timings and ffmpeg assembles the mp4 with English and Spanish subtitles.
+- **Upload automation with n8n** in Podman: uploads the video, sets the synthetic-content disclosure, thumbnail, captions and playlist.
+
+Real data: the pipeline loaded 7,494 videos and 641 channels from two runs, and a rerun skipped what was already loaded. In a single snapshot (30-day window, long videos), stories reach a 46% hit rate (188 videos, 81 channels); it serves to compare topics, not as an absolute figure.
+
+
+## Key decisions
+
+- **Official API only, no yt-dlp:** stable and within YouTube's terms.
+- **Python without dbt:** few transformations; the silver layer lives in memory.
+- **Star schema with two facts and flat dimensions:** a single path to the date table keeps DAX simple.
+- **Databases outside OneDrive:** a live database in a synced folder gets corrupted.
+- **Human-reviewed script and synthetic-content disclosure:** YouTube penalizes mass-produced repetitive content.
+
+
+</div>

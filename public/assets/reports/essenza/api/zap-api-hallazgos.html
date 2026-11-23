@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hallazgos de ZAP en la API: estado antes</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#5b6570; --line:#d8dee4; --card:#f6f8fa; --real:#b42318; --realbg:#fee4e2; --fp:#067647; --fpbg:#d1fadf; --part:#b54708; --partbg:#fef0c7; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9aa4af; --line:#30363d; --card:#161b22; --real:#ffb4a9; --realbg:#4a1d1a; --fp:#8be0ae; --fpbg:#12301f; --part:#ffd488; --partbg:#40300f; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:20px; margin:36px 0 8px; padding-top:8px; border-top:1px solid var(--line); }
+  p, li { color:var(--fg); }
+  .muted { color:var(--muted); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:16px 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .card b { display:block; font-size:24px; }
+  .wrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; margin:8px 0 4px; min-width:760px; }
+  th, td { border:1px solid var(--line); padding:8px 10px; vertical-align:top; text-align:left; }
+  th { background:var(--card); font-weight:600; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
+  .real { color:var(--real); background:var(--realbg); }
+  .fp { color:var(--fp); background:var(--fpbg); }
+  .part { color:var(--part); background:var(--partbg); }
+  code { background:var(--card); border:1px solid var(--line); border-radius:4px; padding:0 4px; font-size:13px; }
+  .note { background:var(--card); border-left:4px solid var(--part); padding:10px 14px; margin:12px 0; border-radius:4px; }
+</style></head><body><main>
+<h1>Hallazgos de OWASP ZAP en la API: estado "antes"</h1>
+<p class="muted">Fecha: 2026-11-21. ZAP 2.17.0. API en modo producción (<code>127.0.0.1:8000</code>). Fuente: <code>security-code-test/api/before</code>. Solo la API.</p>
+<div class="cards">
+<div class="card"><b>3</b>alertas distintas (12 instancias)</div>
+<div class="card"><b>0</b>reales</div>
+<div class="card"><b>3</b>falsos positivos o informativas</div>
+<div class="card"><b>0</b>vulnerabilidades confirmadas</div></div>
+
+<h2>1. Alertas</h2>
+<div class="wrap"><table>
+<tr><th>Alerta</th><th>Riesgo</th><th>¿Real?</th><th>Corrección o justificación</th></tr>
+<tr><td>SQL Injection (9 instancias: <code>POST</code> de articles, brands, categories, products, roles)</td><td>High</td><td><span class="tag fp">No</span></td><td>ZAP compara respuestas: 201 al crear contra 409 si el nombre ya existe. No hubo error SQL ni datos filtrados. En la base los ataques quedaron guardados como texto literal (4 roles y 3 productos con el ataque en el nombre) y el <code>INSERT</code> usa parámetros (<code>api/internal/features/catalog/postgres.go</code>). <b>Corrección:</b> test de integración que guarda <code>' OR 1=1 --</code> en un nombre y comprueba que queda literal.</td></tr>
+<tr><td>Private IP Disclosure (1 instancia)</td><td>Low</td><td><span class="tag fp">No</span></td><td><code>172.23.247.179</code> es la puerta de enlace de WSL, vista como IP de visitante en <code>GET /v1/admin/stats/visitors</code>. Es un endpoint de administración que muestra IPs de visitantes por diseño; en producción serían IPs públicas.</td></tr>
+<tr><td>Authentication Request Identified (2 instancias)</td><td>Info</td><td><span class="tag fp">No</span></td><td>Solo informa de que existen <code>login</code> y <code>reset</code>.</td></tr></table></div>
+
+<h2>2. Por qué casi todo da 4xx</h2>
+<p>Medido en un escaneo principal de 29 042 peticiones (la corrida final tiene la misma estructura). La API no detecta los ataques: los neutraliza, rechazando cualquier valor inválido.</p>
+<div class="wrap"><table><tr><th>Código</th><th>% de los 4xx</th><th>¿La seguridad lo bloqueó?</th></tr>
+<tr><td>422 (validación de campos)</td><td>75 %</td><td>En parte. Valores con formato inválido (rating entero, <code>status</code> y <code>gender</code> en listas cerradas, <code>currency</code> con <code>^[A-Z]{3}$</code>, email y fechas) no llegan a la base.</td></tr>
+<tr><td>409 (ya existe)</td><td>9 %</td><td>No. Lógica de negocio: ZAP repite nombres.</td></tr>
+<tr><td>404</td><td>7 %</td><td>No. Ids mutados o URLs inventadas por ZAP.</td></tr>
+<tr><td>403</td><td>5 %</td><td>Control de acceso, pero vino de probar rutas de plataforma con un usuario sin permiso (el primer intento).</td></tr>
+<tr><td>400 y 401</td><td>4 %</td><td>En parte. El 401 es el login rechazando credenciales falsas.</td></tr>
+<tr><td>415</td><td>1 %</td><td>No. Límite de ZAP con las subidas de archivos.</td></tr></table></div>
+<p>En los campos de texto libre (<code>name</code>, <code>title</code>, <code>description</code>) el ataque sí entró, con respuesta 2xx, y quedó guardado como texto sin hacer daño porque las consultas usan parámetros. Esa es la prueba fuerte, más que el total de 4xx.</p>
+
+<h2>3. Qué cambió respecto al primer intento (hecho a mano)</h2>
+<div class="wrap"><table><tr><th>Primer intento</th><th>Final</th><th>Motivo</th></tr>
+<tr><td>Cuerpo <code>{"name":"test"}</code> en todos los POST/PUT/PATCH</td><td>Cuerpos reales por endpoint</td><td>El 66 % daba 422 y nunca llegaba a la lógica</td></tr>
+<tr><td>UUID falso en las rutas</td><td>Ids de registros reales</td><td>Todo PUT/PATCH/DELETE daba 404</td></tr>
+<tr><td>DELETE dentro del mismo archivo</td><td>DELETE en un archivo aparte</td><td>El import borraba los registros de prueba</td></tr>
+<tr><td>Todo con el usuario <code>zapowner</code></td><td>Pasada de plataforma con <code>zapsuper</code></td><td>Las rutas de plataforma daban 403</td></tr>
+<tr><td>32 hilos sin límite de tiempo</td><td>4 hilos y 20 minutos</td><td>Con 0.1 CPU se mezclaban errores 5xx de carga con hallazgos</td></tr>
+<tr><td><code>change-password</code> sin excluir</td><td>Excluido</td><td>El escaneo cambiaba la contraseña y el token dejaba de valer</td></tr>
+<tr><td>Se aceptaba el resultado sin medirlo</td><td>Se midió cuántas operaciones llegaron a un 2xx</td><td>El primer resultado (3 alertas) casi no probaba nada: solo 2.2 % de respuestas 2xx</td></tr></table></div>
+
+<h2>4. Lo que este escaneo no cubre</h2>
+<ul>
+<li><b>Autorización:</b> datos de otro tenant o de otro rol, <code>X-Tenant</code> falso, JWT manipulado, enumeración de usuarios. ZAP los ve como una respuesta 200 normal.</li>
+<li>Subida del logo del negocio y códigos de reset enviados por correo.</li>
+<li>El límite de tasa estaba apagado durante el escaneo.</li>
+</ul>
+</main></body></html>

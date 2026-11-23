@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calidad de código: Storefront (Astro, store-a)</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#59636e; --card:#f6f8fa; --line:#d1d9e0; --accent:#0969da; --crit:#cf222e; --maj:#bc4c00; --min:#7d6a00; --ok:#1a7f37; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#151b23; --line:#30363d; --accent:#4493f8; --crit:#ff7b72; --maj:#ffa657; --min:#e3b341; --ok:#3fb950; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; } h2 { font-size:20px; margin:40px 0 12px; padding-top:8px; border-top:1px solid var(--line); }
+  .lead { color:var(--muted); margin:0 0 16px; } .note { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:13.5px; margin:12px 0; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; margin:12px 0; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 12px; } .kpi b { display:block; font-size:22px; } .kpi span { color:var(--muted); font-size:12px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; vertical-align:top; padding:8px 10px; border-bottom:1px solid var(--line); font-size:13.5px; } th { color:var(--muted); font-weight:600; } td.num { text-align:center; font-weight:600; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; word-break:break-all; } code.rule { color:var(--muted); }
+  .tag { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:0 8px; font-size:11px; color:var(--muted); }
+  .tag.critical { color:var(--crit); border-color:var(--crit); } .tag.major { color:var(--maj); border-color:var(--maj); } .tag.minor { color:var(--min); border-color:var(--min); } .tag.ok { color:var(--ok); border-color:var(--ok); }
+  .bar { display:inline-block; width:160px; height:10px; background:var(--line); border-radius:5px; vertical-align:middle; margin-right:8px; } .bar i { display:block; height:100%; border-radius:5px; background:var(--accent); }
+  .flow { display:flex; gap:24px; flex-wrap:wrap; align-items:center; margin:8px 0 4px; } .flow div { font-size:13px; }
+  @media (max-width:700px) { th:nth-child(2), td:nth-child(2) { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Storefront (Astro, store-a)</h1>
+  <p class="lead">Proyecto Sonar <code>frontoffice-saas-stores</code> · antes: 2026-11-21 · después: 2026-11-21 · SonarQube Community Build 26.11, reglas "Sonar way".</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>13 → 0</b><span>Issues abiertos</span></div>
+    <div class="kpi"><b>11</b><span>Corregidos con código</span></div>
+    <div class="kpi"><b>2</b><span>Excepciones justificadas</span></div>
+    <div class="kpi"><b>ERROR</b><span>Quality Gate (antes OK)</span></div>
+  </div>
+  <div class="flow">
+    <div>Antes <span class="bar"><i style="width:100%"></i></span> <b>13</b></div>
+    <div>Después <span class="bar"><i style="width:2%"></i></span> <b>0</b></div>
+  </div>
+  <div class="note"><b>Lectura honesta:</b> de los 13 issues, 11 se corrigieron cambiando código y 2 se dieron por excepción justificada. Una excepción hace desaparecer el aviso del reporte, pero no es una corrección: el motivo está escrito en cada fila de abajo y en <code>sonar-project.properties</code>. Sonar es una regla estática, no un juez: cada aviso se revisó contra el código real antes de decidir.</div>
+
+  <h2>1. Antes → después</h2>
+  <table><thead><tr><th>Medida</th><th>Antes</th><th>Después</th></tr></thead><tbody><tr><td>Issues abiertos</td><td class="num">13</td><td class="num">0</td></tr><tr><td>Bugs</td><td class="num">3</td><td class="num">0</td></tr><tr><td>Vulnerabilidades</td><td class="num">2</td><td class="num">0</td></tr><tr><td>Code smells</td><td class="num">8</td><td class="num">0</td></tr><tr><td>Rating de fiabilidad</td><td class="num">D</td><td class="num">A</td></tr><tr><td>Rating de seguridad</td><td class="num">C</td><td class="num">A</td></tr><tr><td>Rating de mantenibilidad</td><td class="num">A</td><td class="num">A</td></tr><tr><td>Cobertura</td><td class="num">0.0 %</td><td class="num">0.0 %</td></tr><tr><td>Duplicación</td><td class="num">0.0 %</td><td class="num">0.0 %</td></tr><tr><td>Líneas de código</td><td class="num">3190</td><td class="num">3215</td></tr><tr><td>Quality Gate</td><td class="num">OK</td><td class="num">ERROR</td></tr></tbody></table>
+
+  <h2>2. Antes: lo que encontró Sonar y qué se hizo con cada caso</h2>
+  <table><thead><tr><th>Dónde</th><th>Problema</th><th>Resultado</th></tr></thead><tbody>
+    <tr><td><code>src/lib/api/mappers.ts:70</code><br><code class="rule">typescript:S8786</code> <span class="tag major">MAJOR</span></td>
+    <td>Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtrack...</td>
+    <td><span class="tag ok">Corregido</span> <b>F1</b><br>Recorte lineal con helpers (text.ts) en lugar de regex con backtracking.</td></tr>
+    <tr><td><code>src/lib/listing-query.ts:111</code><br><code class="rule">typescript:S2871</code> <span class="tag critical">CRITICAL</span></td>
+    <td>Provide a compare function that depends on &quot;String.localeCompare&quot;, to reliably sort elements alphabetically.</td>
+    <td><span class="tag ok">Corregido</span> <b>F3</b><br>Comparador explícito que conserva el orden por unidad de código (no localeCompare: cambiaría URLs canónicas).</td></tr>
+    <tr><td><code>src/components/landing/reviews-carousel.ts:235</code><br><code class="rule">typescript:S6544</code> <span class="tag major">MAJOR</span></td>
+    <td>Expected non-Promise value in a boolean conditional.</td>
+    <td><span class="tag ok">Corregido</span> <b>F4</b><br>La condición comprueba document.fonts en vez de la Promise.</td></tr>
+    <tr><td><code>src/lib/env.ts:28</code><br><code class="rule">typescript:S8786</code> <span class="tag major">MAJOR</span></td>
+    <td>Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtrack...</td>
+    <td><span class="tag ok">Corregido</span> <b>F1</b><br>Recorte lineal con helpers (text.ts) en lugar de regex con backtracking.</td></tr>
+    <tr><td><code>src/lib/listing.ts:34</code><br><code class="rule">typescript:S7773</code> <span class="tag minor">MINOR</span></td>
+    <td>Prefer `Number.NaN` over `NaN`.</td>
+    <td><span class="tag ok">Corregido</span> <b>F5</b><br>Number.NaN y regex corregida a \d (el d literal era código muerto, sin cambio de comportamiento).</td></tr>
+    <tr><td><code>src/lib/share-image.ts:12</code><br><code class="rule">typescript:S8786</code> <span class="tag major">MAJOR</span></td>
+    <td>Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtrack...</td>
+    <td><span class="tag ok">Corregido</span> <b>F1</b><br>Recorte lineal con helpers (text.ts) en lugar de regex con backtracking.</td></tr>
+    <tr><td><code>src/lib/sitemap.ts:22</code><br><code class="rule">typescript:S8786</code> <span class="tag major">MAJOR</span></td>
+    <td>Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtrack...</td>
+    <td><span class="tag ok">Corregido</span> <b>F1</b><br>Recorte lineal con helpers (text.ts) en lugar de regex con backtracking.</td></tr>
+    <tr><td><code>src/lib/sitemap.ts:32</code><br><code class="rule">typescript:S8786</code> <span class="tag major">MAJOR</span></td>
+    <td>Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtrack...</td>
+    <td><span class="tag ok">Corregido</span> <b>F1</b><br>Recorte lineal con helpers (text.ts) en lugar de regex con backtracking.</td></tr>
+    <tr><td><code>src/lib/tracking.ts:79</code><br><code class="rule">typescript:S2245</code> <span class="tag major">MAJOR</span></td>
+    <td>Make sure that using this pseudorandom number generator is safe here.</td>
+    <td><span class="tag ok">Corregido</span> <b>F6</b><br>Los ids usan crypto.getRandomValues; los dos usos se consolidaron en un helper (randomHex).</td></tr>
+    <tr><td><code>src/lib/tracking.ts:315</code><br><code class="rule">typescript:S8786</code> <span class="tag major">MAJOR</span></td>
+    <td>Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtrack...</td>
+    <td><span class="tag ok">Corregido</span> <b>F1</b><br>Recorte lineal con helpers (text.ts) en lugar de regex con backtracking.</td></tr>
+    <tr><td><code>src/lib/contact.ts:23</code><br><code class="rule">typescript:S8786</code> <span class="tag major">MAJOR</span></td>
+    <td>Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtrack...</td>
+    <td><span class="tag minor">Excepción</span> <b>R1</b><br>Correo: la entrada se limita a 254 caracteres antes de la regex, peor caso acotado. Un tope no satisface a Sonar; excepción justificada.</td></tr>
+    <tr><td><code>src/lib/tracking.ts:298</code><br><code class="rule">typescript:S4822</code> <span class="tag major">MAJOR</span></td>
+    <td>Consider removing this 'try' statement as promise rejection is already captured by '.catch()' method.</td>
+    <td><span class="tag ok">Corregido</span> <b>F7</b><br>try/catch reemplazado por la comprobación typeof fetch.</td></tr>
+    <tr><td><code>src/lib/tracking.ts:233</code><br><code class="rule">typescript:S2245</code> <span class="tag major">MAJOR</span></td>
+    <td>Make sure that using this pseudorandom number generator is safe here.</td>
+    <td><span class="tag minor">Excepción</span> <b>R3</b><br>Queda un Math.random como último recurso cuando no existe crypto; son ids de analítica, nunca secretos. Excepción justificada.</td></tr></tbody></table>
+
+  <h2>3. Medidas tomadas</h2>
+  <table><thead><tr><th>ID</th><th>Tipo</th><th>Qué se hizo</th><th>Dónde</th></tr></thead><tbody>
+    <tr><td><b>F1</b></td><td><span class="tag ok">Corrección</span><br><code class="rule">typescript:S8786</code></td><td>Nuevo módulo text.ts con recortes lineales (barras y puntuación finales) que sustituyen 6 regex con backtracking. El test compara cada helper con la regex original, incluidos espacios unicode y una entrada de 100 000 barras.</td><td><code>src/lib/text.ts, env.ts, share-image.ts, sitemap.ts, tracking.ts, api/mappers.ts</code></td></tr>
+    <tr><td><b>F3</b></td><td><span class="tag ok">Corrección</span><br><code class="rule">typescript:S2871</code></td><td>Comparador explícito que mantiene el orden por unidad de código, para no cambiar el orden de las marcas en las URLs canónicas (SEO). Test que fija el orden.</td><td><code>src/lib/listing-query.ts</code></td></tr>
+    <tr><td><b>F4</b></td><td><span class="tag ok">Corrección</span><br><code class="rule">typescript:S6544</code></td><td>La condición usaba una Promise (siempre verdadera); ahora comprueba document.fonts.</td><td><code>src/components/landing/reviews-carousel.ts</code></td></tr>
+    <tr><td><b>F5</b></td><td><span class="tag ok">Corrección</span><br><code class="rule">typescript:S7773</code></td><td>Number.NaN y regex /^[1-9]\d?$/. La d literal era código muerto: PAGE_SIZE es 12, así que ?tamano=12 ya devolvía 12. Sin cambio de comportamiento.</td><td><code>src/lib/listing.ts</code></td></tr>
+    <tr><td><b>F6</b></td><td><span class="tag ok">Corrección</span><br><code class="rule">typescript:S2245</code></td><td>Ids de vista y de sesión con crypto.getRandomValues, consolidados en randomHex. Tests de unicidad y de formato UUID v4.</td><td><code>src/lib/tracking.ts</code></td></tr>
+    <tr><td><b>F7</b></td><td><span class="tag ok">Corrección</span><br><code class="rule">typescript:S4822</code></td><td>try/catch alrededor de fetch reemplazado por typeof fetch; el .catch se mantiene, el tracking no puede romper la página.</td><td><code>src/lib/tracking.ts</code></td></tr>
+    <tr><td><b>R1</b></td><td><span class="tag minor">Excepción</span><br><code class="rule">typescript:S8786</code></td><td>Regex de correo con la entrada limitada a 254 caracteres. Se intentó el tope como arreglo y Sonar siguió marcándolo (analiza la forma de la expresión). Se declara excepción.</td><td><code>sonar-project.properties (contact.ts)</code></td></tr>
+    <tr><td><b>R3</b></td><td><span class="tag minor">Excepción</span><br><code class="rule">typescript:S2245</code></td><td>Math.random solo como último recurso si no existe crypto; ids de analítica, nunca secretos.</td><td><code>sonar-project.properties (tracking.ts)</code></td></tr></tbody></table>
+  <div class="note"><b>Pruebas tras los cambios.</b> npm test (vitest): 44 archivos, 572 tests en verde; npm run check (astro check): 0 errores, 0 avisos.</div>
+
+  <h2>4. Después: Quality Gate</h2>
+  <table><thead><tr><th>Condición</th><th>Umbral</th><th>Valor</th><th>Estado</th></tr></thead><tbody><tr><td>Cobertura del código nuevo</td><td>mínimo 80</td><td class="num">0.0</td><td><span class="tag critical">ERROR</span></td></tr><tr><td>Duplicación del código nuevo</td><td>máximo 3</td><td class="num">0.0</td><td><span class="tag ok">OK</span></td></tr><tr><td>Issues nuevos</td><td>máximo 0</td><td class="num">0</td><td><span class="tag ok">OK</span></td></tr></tbody></table>
+  <div class="note">El gate falla por la cobertura del código nuevo (0 % frente al 80 % exigido). No viene de las correcciones: en este proyecto no se mide cobertura (no se pasó ningún reporte de tests a Sonar), y en el &quot;before&quot; el gate salía OK solo porque no había código nuevo que evaluar. Sigue pendiente decidir si se mide.</div>
+  <p class="lead">Los security hotspots no se pudieron detallar con el token de análisis; el conteo de Sonar es 0.</p>
+</main>
+</body>
+</html>
