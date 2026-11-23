@@ -33,7 +33,7 @@ export interface IProject {
     },
     technologies: string[],
     url: string,
-    category: 'work' | 'personal',
+    category: 'work' | 'personal' | 'academic',
     links: {
         github: IGithub[],
         live: string
