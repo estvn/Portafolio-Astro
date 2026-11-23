@@ -34,18 +34,37 @@ export const technologies: ITypeTechnology[] = [
         listTechnologies: [
             { name: "Power BI",                        icon: "/assets/icons/powerbi-svgrepo-com.svg" },
             { name: "Data Warehouse",                  icon: "/assets/icons/data-warehouse.png" },
+            { name: "Data Lake",                       icon: "/assets/icons/data-lake.svg" },
+            { name: "ETL",                             icon: "/assets/icons/etl.svg" },
             { name: "Tableau",                         icon: "/assets/icons/tableau.svg" }
         ]
     },
     {
-        type: "Infraestructura",
-        type_en: "Infrastructure",
+        type: "DevOps e Infraestructura",
+        type_en: "DevOps & Infrastructure",
         listTechnologies: [
             //{ name: "Microservicios", icon: "/assets/icons/microservicio.png" },
             //{ name: "Serverless",     icon: "/assets/icons/serverless.svg" },
             { name: "Docker",         icon: "/assets/icons/docker.svg" },
             { name: "Terraform",      icon: "/assets/icons/terraform.svg" },
             { name: "Azure Cloud",    icon: "/assets/icons/azure.svg" },
+            { name: "GitHub Actions", icon: "/assets/icons/github-actions.svg" },
+            { name: "SonarQube",      icon: "/assets/icons/sonarqube.svg" },
+            { name: "OWASP ZAP",      icon: "/assets/icons/owasp-zap.svg" },
+            { name: "k6",             icon: "/assets/icons/k6.svg" },
+            { name: "Prometheus",     icon: "/assets/icons/prometheus.svg" },
+            { name: "Grafana",        icon: "/assets/icons/grafana.svg" },
+        ]
+    },
+    {
+        type: "IA y Agentes",
+        type_en: "AI & Agents",
+        listTechnologies: [
+            { name: "RAG",            icon: "/assets/icons/rag.svg" },
+            { name: "pgvector",       icon: "/assets/icons/vector-db.svg" },
+            { name: "LangChain",      icon: "/assets/icons/langchain.svg" },
+            { name: "MCP",            icon: "/assets/icons/mcp.svg" },
+            { name: "n8n",            icon: "/assets/icons/n8n.svg" },
         ]
     },
     {
